@@ -1,5 +1,7 @@
 import os
 import logging
+import json
+import hashlib
 import pandas as pd
 
 from dash import html, dcc
@@ -151,14 +153,27 @@ def callbacks(app):
     @app.callback(
         Output("shapley-values", "children"),
         Output("anomaly-progress-probe", "children"),
+        Output("anomaly-cache-key", "children"),
         Input("tabs", "value"),
         Input("project", "value"),
         Input("pipeline", "value"),
         Input("anomaly-fraction", "value"),
         Input("qc-scope-data", "data"),
         State("qc-table-columns", "value"),
+        State("anomaly-cache-key", "children"),
+        State("shapley-values", "children"),
     )
-    def run_anomaly_detection(tab, project, pipeline, fraction_in, scope_data, columns, **kwargs):
+    def run_anomaly_detection(
+        tab,
+        project,
+        pipeline,
+        fraction_in,
+        scope_data,
+        columns,
+        cached_key,
+        cached_payload,
+        **kwargs,
+    ):
         if tab != "anomaly":
             raise PreventUpdate
         if project is None or pipeline is None:
@@ -168,8 +183,21 @@ def callbacks(app):
 
         fraction = (fraction_in or 5) / 100.0
         algorithm = "iforest"
-
         columns = columns or []
+        scope_sig = hashlib.md5(json.dumps(scope_data, sort_keys=True, default=str).encode("utf-8")).hexdigest()
+        cache_key = json.dumps(
+            {
+                "project": project,
+                "pipeline": pipeline,
+                "fraction": int(fraction_in or 5),
+                "columns": sorted(columns),
+                "scope_sig": scope_sig,
+                "algorithm": algorithm,
+            },
+            sort_keys=True,
+        )
+        if cached_key == cache_key and cached_payload:
+            raise PreventUpdate
 
         uid = kwargs["user"].uuid
 
@@ -202,7 +230,7 @@ def callbacks(app):
         pqc.rawfile(files_to_unflag, "unflag")
 
         payload = df_shap.to_json() if df_shap is not None else None
-        return payload, f"updated-{project}-{pipeline}-{fraction_in}"
+        return payload, f"updated-{project}-{pipeline}-{fraction_in}", cache_key
 
 
     @app.callback(
@@ -246,14 +274,13 @@ def callbacks(app):
         df_plot.index = [_short_label_keep_ends(v, max_len=30, tail_len=8) for v in df_plot.index]
         df_plot.columns = [_short_label(_pretty_metric_name(c), max_len=30) for c in df_plot.columns]
 
-        # Fit inside workspace canvas while remaining readable.
-        n_samples = max(1, df_shap.shape[0])
-        dynamic_height = max(380, min(620, 210 + (n_samples * 42)))
+        # Keep a stable panel size across cohorts to avoid page-height jumps.
+        fixed_height = 460
 
         fig = T.px_heatmap(
             df_plot,
             layout_kws=dict(
-                height=dynamic_height,
+                height=fixed_height,
             ),
         )
 

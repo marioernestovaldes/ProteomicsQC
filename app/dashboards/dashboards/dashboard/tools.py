@@ -443,11 +443,25 @@ def detect_anomalies(
     df_train = qc_data[qc_data["Use Downstream"].fillna(False)][selected_cols].fillna(0)
     df_all = qc_data[selected_cols].fillna(0)
 
+    # Keep anomaly setup from consuming all CPUs by default.
+    env_n_jobs = os.getenv("PQC_ANOMALY_N_JOBS")
+    if env_n_jobs is not None:
+        try:
+            n_jobs = max(1, int(env_n_jobs))
+        except ValueError:
+            n_jobs = 2
+            logging.warning(
+                "Invalid PQC_ANOMALY_N_JOBS=%r. Falling back to %s.", env_n_jobs, n_jobs
+            )
+    else:
+        cpu_count = os.cpu_count() or 2
+        n_jobs = min(4, max(1, cpu_count // 2))
+
     _ = setup(
         df_train,
-        # silent=True,
-        # ignore_low_variance=False,
-        # remove_perfect_collinearity=False,
+        verbose=False,
+        html=False,
+        n_jobs=n_jobs,
         numeric_features=selected_cols,
     )
 

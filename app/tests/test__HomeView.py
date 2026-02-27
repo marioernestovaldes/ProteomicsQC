@@ -42,6 +42,7 @@ class HomeViewTestCase(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertIn("login_form", response.context)
+        self.assertContains(response, reverse("password_reset"))
 
     def test_home_renders_for_authenticated_user(self):
         self.client.force_login(self.user)

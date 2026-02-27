@@ -357,6 +357,80 @@ body {
   background: #e8f3f8;
 }
 
+.pqc-protein-intensity-dropdown .Select-control {
+  min-height: 40px;
+  border: 1px solid #aac6d8;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #ffffff 0%, #f4f9fc 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 2px 7px rgba(20, 83, 114, 0.06);
+}
+
+.pqc-protein-intensity-dropdown .Select-placeholder,
+.pqc-protein-intensity-dropdown .Select-value-label {
+  color: #1f3e59 !important;
+  font-weight: 400;
+}
+
+.pqc-protein-intensity-dropdown.Select--single .Select-placeholder,
+.pqc-protein-intensity-dropdown.Select--single .Select-value-label {
+  line-height: 38px;
+}
+
+.pqc-protein-intensity-dropdown.Select--multi .Select-value {
+  border-radius: 6px;
+  border: 1px solid #c5d8e5;
+  background: #f5f9fc;
+  margin-top: 0;
+  margin-right: 4px;
+  line-height: 1;
+}
+
+.pqc-protein-intensity-dropdown.Select--multi .Select-multi-value-wrapper {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  min-height: 38px;
+  padding: 0 6px;
+}
+
+.pqc-protein-intensity-dropdown.Select--multi .Select-value-label {
+  font-weight: 400;
+  font-size: 12px;
+  color: #1f3e59 !important;
+  padding: 0 4px;
+  line-height: 18px;
+}
+
+.pqc-protein-intensity-dropdown.Select--multi .Select-value-icon {
+  border-right: 1px solid #d7e4ed;
+  color: #557a91;
+  padding: 0 4px;
+  font-size: 11px;
+  line-height: 18px;
+}
+
+.pqc-protein-intensity-dropdown.Select--multi .Select-value-icon:hover {
+  background: #eaf3f9;
+  color: #205f7c;
+}
+
+.pqc-protein-intensity-dropdown .Select-menu-outer {
+  border: 1px solid #aac6d8;
+  border-radius: 10px;
+  box-shadow: 0 7px 16px rgba(22, 70, 95, 0.14);
+}
+
+.pqc-protein-intensity-dropdown .Select-option.is-focused {
+  background: #e7f2f8;
+  color: #165f79;
+}
+
+.pqc-protein-intensity-dropdown.is-focused .Select-control,
+.pqc-protein-intensity-dropdown.is-open .Select-control {
+  border-color: #6e9db7;
+  box-shadow: 0 0 0 3px rgba(131, 174, 195, 0.28);
+}
+
 .pqc-selection-row {
   margin-top: 8px;
   display: flex;

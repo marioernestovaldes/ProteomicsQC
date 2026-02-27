@@ -40,17 +40,14 @@ if __name__ == "__main__":
         __name__,
         external_stylesheets=["/static/css/dashboard.css"],
     )
-    import proteins
-    import quality_control
-    import explorer
-    import anomaly
+    import quality_control, anomaly, protein_intensity
     import config as C
     import tools as T
 
     app.config.suppress_callback_exceptions = True
 else:
     from django_plotly_dash import DjangoDash
-    from . import proteins, quality_control, explorer, anomaly
+    from . import quality_control, anomaly, protein_intensity
     from . import config as C
     from . import tools as T
 
@@ -242,11 +239,10 @@ layout = html.Div(
                                             value="anomaly",
                                         ),
                                         dcc.Tab(
-                                            id="tab-explorer",
-                                            label="Explorer",
-                                            value="explorer",
+                                            id="tab-protein-intensity",
+                                            label="Protein Intensities",
+                                            value="protein_intensity",
                                         ),
-                                        dcc.Tab(label="Proteins", value="proteins"),
                                     ],
                                 ),
                                 html.Div(
@@ -302,20 +298,17 @@ layout = html.Div(
 
 app.layout = layout
 
-proteins.callbacks(app)
-explorer.callbacks(app)
 anomaly.callbacks(app)
 quality_control.callbacks(app)
+protein_intensity.callbacks(app)
 
 
 @app.callback(Output("tabs-content", "children"), [Input("tabs", "value")])
 def render_content(tab):
-    if tab == "proteins":
-        return proteins.layout
+    if tab == "protein_intensity":
+        return protein_intensity.layout
     if tab == "quality_control":
         return quality_control.layout
-    if tab == "explorer":
-        return explorer.layout
     if tab == "anomaly":
         return anomaly.layout
 

@@ -304,6 +304,7 @@ class Result(models.Model):
         return stream.getvalue()
 
     def maxquant_qc_data(self):
+        df = None
         try:
             df = load_maxquant_data_from(self.path, unpack=False)
         except Exception as e:

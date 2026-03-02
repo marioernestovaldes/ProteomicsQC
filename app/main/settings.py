@@ -2,14 +2,6 @@ import os
 from pathlib import Path as P
 from django.core.files.storage import FileSystemStorage
 
-import logging
-logger = logging.getLogger(__name__)
-logger.debug("MY LOGGER: DEBUG")
-logger.info("MY LOGGER: INFO")
-logger.warning("MY LOGGER: WARNING")
-logger.error("MY LOGGER: ERROR")
-logger.critical("MY LOGGER: CRITICAL")
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = P(__file__).resolve().parent.parent
 

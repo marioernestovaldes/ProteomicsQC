@@ -69,10 +69,14 @@ def _demo_seed_config_dir() -> Path:
     return _demo_seed_root() / "config"
 
 
+def _omics_test_data_root() -> Path:
+    return _app_root() / "tests" / "omics" / "data"
+
+
 def _seed_mqpar_path() -> Path:
     return _first_existing_path(
         _demo_seed_config_dir() / "mqpar.xml",
-        Path("/lrg-omics/tests/data/maxquant/tmt11/mqpar/mqpar.xml"),
+        _omics_test_data_root() / "maxquant" / "tmt11" / "mqpar" / "mqpar.xml",
         _repo_root() / "mqpar_2.4.12.0.xml",
     )
 
@@ -80,29 +84,19 @@ def _seed_mqpar_path() -> Path:
 def _seed_fasta_path() -> Path:
     return _first_existing_path(
         _demo_seed_config_dir() / "fasta.faa",
-        Path("/lrg-omics/tests/data/fasta/minimal.faa"),
-        _repo_root() / "lib" / "lrg-omics" / "tests" / "data" / "fasta" / "minimal.faa",
+        _demo_seed_root() / "config" / "fasta.faa",
     )
 
 
 def _seed_maxquant_output_dir() -> Path:
     return _first_existing_path(
-        Path("/lrg-omics/tests/data/maxquant/tmt11/example-0"),
-        _repo_root()
-        / "lib"
-        / "lrg-omics"
-        / "tests"
-        / "data"
-        / "maxquant"
-        / "tmt11"
-        / "example-0",
+        _omics_test_data_root() / "maxquant" / "tmt11" / "example-0",
     )
 
 
 def _seed_rawtools_dir() -> Path:
     return _first_existing_path(
-        Path("/lrg-omics/tests/data/rawtools"),
-        _repo_root() / "lib" / "lrg-omics" / "tests" / "data" / "rawtools",
+        _omics_test_data_root() / "rawtools",
     )
 
 

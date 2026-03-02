@@ -24,13 +24,72 @@
  * Compatibility layer during migration.
  * Keep only legacy selectors not yet moved.
  */
-#CookielawBanner { 
-  background: #fff;
-  border: 2px solid red;
-  border-radius: 5px;
-  max-width: 100%;
-  margin: auto;
-  padding: 15px 0;
+#CookielawBanner {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1200;
+  padding: 18px 20px 20px;
+  pointer-events: none;
+}
+
+.cookielaw-shell {
+  display: flex;
+  justify-content: center;
+}
+
+.cookielaw-panel {
+  width: min(1080px, calc(100vw - 40px));
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 22px;
+  border: 1px solid #dbe5f0;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 251, 253, 0.98) 100%);
+  box-shadow: 0 18px 38px rgba(26, 78, 99, 0.18);
+  pointer-events: auto;
+  backdrop-filter: blur(10px);
+}
+
+.cookielaw-copy {
+  max-width: 760px;
+}
+
+.cookielaw-kicker {
+  margin: 0 0 6px 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.cookielaw-title {
+  margin: 0 0 8px 0;
+  color: var(--color-brand-ink);
+  font-size: 28px;
+  line-height: 1.1;
+}
+
+.cookielaw-text {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--color-text-strong);
+}
+
+.cookielaw-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.cookielaw-accept {
+  min-width: 180px;
+  white-space: nowrap;
 }
 
 .nobull {
@@ -65,21 +124,6 @@ iframe {
 
 .figure_large_rect {
   max-width:1200; 
-}
-
-#CookielawBanner .container {
-  position: relative;
-}
-
-#CookielawCross {
-  background: url('../img/close.png') no-repeat 0 0;
-  cursor: pointer;
-  display: block;
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 15px;
-  height: 15px;
 }
 
 .pagination {
@@ -148,4 +192,26 @@ a[data-toggle="collapse"] {
 
 a:hover {
   text-decoration: None;
+}
+
+@media (max-width: 820px) {
+  #CookielawBanner {
+    padding: 14px;
+  }
+
+  .cookielaw-panel {
+    width: min(100vw - 28px, 100%);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 18px;
+  }
+
+  .cookielaw-title {
+    font-size: 24px;
+  }
+
+  .cookielaw-accept {
+    width: 100%;
+  }
 }

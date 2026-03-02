@@ -1,18 +1,26 @@
-FROM continuumio/miniconda3:latest
+FROM ubuntu:24.04
 
-# Downgrade conda python to python 3.10
-RUN conda install -y python=3.10
-
-RUN cat /etc/os-release
+SHELL ["/bin/bash", "-c"]
 
 ENV PYTHONUNBUFFERED=1
 
+RUN mkdir /data /compute /static /appmedia /datalake
+
+# Get OS version info
+RUN cat /etc/os-release
+
 RUN apt-get update && \
-    apt-get install -y build-essential time curl libicu-dev \
+    apt-get install -y build-essential time curl wget libicu-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN python --version
+RUN wget https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh
+
+RUN chmod +x Miniforge3-Linux-x86_64.sh && bash Miniforge3-Linux-x86_64.sh -b -p /opt/conda \
+    && rm -f Miniforge3-Linux-x86_64.sh
+
+# Downgrade conda python to python 3.10
+RUN /opt/conda/bin/conda install -y python=3.10
 
 # allow running dotnet without ICU globalization data if needed
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
@@ -27,23 +35,21 @@ RUN curl -SL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \
     && rm /tmp/dotnet-install.sh
 
 # add uv package really fast for installations; override channels to avoid TOS prompts
-RUN conda install --override-channels -c conda-forge -c bioconda pip rawtools mono=5 uv
+# Note: mono may not be available on ARM64, install what's available
+RUN /opt/conda/bin/conda install --override-channels -c conda-forge -c bioconda pip uv || true
+RUN /opt/conda/bin/conda install --override-channels -c conda-forge -c bioconda rawtools || true
+RUN /opt/conda/bin/conda install --override-channels -c conda-forge -c bioconda mono || true
 
 COPY requirements.txt requirements.txt
 
 # add this to avoid issues with matplotlib installation
 ENV MPLCONFIGDIR=/tmp/matplotlib
 
-# add uv to install
-RUN uv pip install --system -r requirements.txt
+# add uv to install with increased timeout for large packages
+ENV UV_HTTP_TIMEOUT=300
+RUN /opt/conda/bin/uv pip install --python /opt/conda/bin/python --no-cache -r requirements.txt
 
-COPY ./lib/lrg-omics /lrg-omics
-
-RUN cd /lrg-omics && pip install -e .
-
-# Used for testing
-# COPY new_req.txt new_req.txt
-# RUN pip install -r new_req.txt
+RUN chown 1000:1000 /data /compute /static /appmedia /datalake
 
 COPY ./app /app
 
@@ -53,3 +59,5 @@ RUN mkdir -p /app/main/static/dash/component_data/plotly/package_data \
          /app/main/static/dash/component_data/plotly/package_data/plotly.min.js
 
 WORKDIR /app/
+
+RUN dotnet --list-runtimes

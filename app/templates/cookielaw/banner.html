@@ -1,28 +1,17 @@
 {% load i18n %}
-<div class='block'>
-  <div id="CookielawBanner">
-    <div class="container">
-      <p>
-      <table>
-        <tr>
-          <th>
-            `<h3 style='text-align: left'>Cookie Disclaimer</h3>
-          </th>
-        </tr>
-        <tr>
-          <th>
-            Our site saves small pieces of text information (cookies) on your device in order to deliver better content and for statistical purposes. 
-            You can disable the usage of cookies by changing the settings of your browser. By browsing our website without changing the browser settings
-            you grant us permission to store that information on your device.
-          </th>
-        </tr>
-        <tr>
-          <th>
-            <a class="center" href="javascript:Cookielaw.createCookielawCookie();"><button class='btn'>I agree</button></a>
-          </th>
-        </tr>
-      </table>
+<div id="CookielawBanner" class="cookielaw-shell" role="region" aria-label="{% trans 'Cookie notice' %}">
+  <div class="cookielaw-panel">
+    <div class="cookielaw-copy">
+      <p class="cookielaw-kicker">{% trans "Privacy settings" %}</p>
+      <h3 class="cookielaw-title">{% trans "Cookie Disclaimer" %}</h3>
+      <p class="cookielaw-text">
+        {% trans "We use essential cookies to keep the platform working and limited analytics cookies to understand usage. By continuing to browse, you consent to storing that information on your device." %}
       </p>
+    </div>
+    <div class="cookielaw-actions">
+      <button type="button" class="btn run-btn run-btn-primary cookielaw-accept" onclick="Cookielaw.createCookielawCookie();">
+        {% trans "I agree" %}
+      </button>
     </div>
   </div>
 </div>

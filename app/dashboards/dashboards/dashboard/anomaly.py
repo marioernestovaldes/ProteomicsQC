@@ -146,6 +146,7 @@ layout = html.Div(
 
 
 def callbacks(app):
+    min_samples_for_anomaly = 3
 
     def _short_label(value, max_len=26):
         text = str(value)
@@ -237,6 +238,9 @@ def callbacks(app):
         qc_data = pd.DataFrame(scope_data or [])
         if qc_data.empty or "RawFile" not in qc_data.columns:
             return None, f"empty-{project}-{pipeline}-{fraction_in}", cache_key
+        sample_count = qc_data["RawFile"].dropna().astype(str).nunique()
+        if sample_count < min_samples_for_anomaly:
+            return None, f"insufficient-{project}-{pipeline}-{sample_count}", cache_key
         qc_data = qc_data.set_index("RawFile")
 
         # Replace column fully None → True
@@ -278,6 +282,7 @@ def callbacks(app):
         Output("anomaly-figure", "figure"),
         Output("anomaly-figure", "config"),
         Output("anomaly-figure", "style"),
+        Output("anomaly-empty-state", "children"),
         Output("anomaly-empty-state", "style"),
         Input("shapley-values", "children"),
         Input("qc-scope-data", "data"),
@@ -303,17 +308,27 @@ def callbacks(app):
             "height": "100%",
             "margin": "0",
         }
+        default_empty_message = "No anomaly plot data available for this scope."
 
         if tab != "anomaly":
-            return {}, config, hidden_graph_style, {"display": "none"}
+            return {}, config, hidden_graph_style, default_empty_message, {"display": "none"}
 
         qc_data = pd.DataFrame(qc_data or [])
         if qc_data.empty:
-            return {}, config, hidden_graph_style, {"display": "flex"}
+            return {}, config, hidden_graph_style, default_empty_message, {"display": "flex"}
         if "RawFile" not in qc_data.columns:
-            return {}, config, hidden_graph_style, {"display": "flex"}
+            return {}, config, hidden_graph_style, default_empty_message, {"display": "flex"}
+        sample_count = qc_data["RawFile"].dropna().astype(str).nunique()
+        if sample_count < min_samples_for_anomaly:
+            return (
+                {},
+                config,
+                hidden_graph_style,
+                f"Anomaly detection requires at least {min_samples_for_anomaly} samples. Current selection has {sample_count}.",
+                {"display": "flex"},
+            )
         if shapley_values is None:
-            return {}, config, hidden_graph_style, {"display": "flex"}
+            return {}, config, hidden_graph_style, default_empty_message, {"display": "flex"}
 
         try:
             df_shap = pd.read_json(shapley_values, orient="split")
@@ -406,4 +421,4 @@ def callbacks(app):
         fig.update_xaxes(title_font=dict(size=12))
         fig.update_yaxes(title_font=dict(size=12), tickfont=dict(size=9))
 
-        return fig, config, visible_graph_style, {"display": "none"}
+        return fig, config, visible_graph_style, default_empty_message, {"display": "none"}

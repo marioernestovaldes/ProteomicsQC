@@ -548,7 +548,7 @@ def get_qc_data(project_slug, pipeline_slug, data_range=None, user=None):
     metadata_rows = []
     tmt_peptide_rows = []
     for result in results:
-        raw_fn = P(result.raw_file.name).with_suffix("").name
+        raw_fn = P(result.raw_file.logical_name).with_suffix("").name
         raw_is_flagged = result.raw_file.flagged
         raw_use_downstream = result.raw_file.use_downstream
         raw_file_id = result.raw_file_id
@@ -645,7 +645,10 @@ def get_qc_data(project_slug, pipeline_slug, data_range=None, user=None):
         if "RawFile" not in df.columns and "RawFile_meta" in df.columns:
             df["RawFile"] = df["RawFile_meta"]
         elif "RawFile_meta" in df.columns:
-            df["RawFile"] = df["RawFile"].fillna(df["RawFile_meta"])
+            df["RawFile"] = df["RawFile_meta"].where(
+                df["RawFile_meta"].notna() & (df["RawFile_meta"].astype(str).str.strip() != ""),
+                df["RawFile"],
+            )
         if "RawFile_meta" in df.columns:
             df = df.drop(columns=["RawFile_meta"])
 

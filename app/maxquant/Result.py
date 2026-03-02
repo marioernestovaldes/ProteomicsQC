@@ -311,14 +311,14 @@ class Result(models.Model):
             logging.warning(f"{e}: load_maxquant_data_from({self.path})")
         if df is None:
             df = pd.DataFrame()
-        df["RawFile"] = self.raw_fn.with_suffix("").name
+        df["RawFile"] = P(self.raw_file.logical_name).with_suffix("").name
         return df.set_index("RawFile").reset_index()
 
     def rawtools_qc_data(self):
         df = load_rawtools_data_from(self.path)
         if df is None:
             df = pd.DataFrame()
-        df["RawFile"] = self.raw_fn.with_suffix("").name
+        df["RawFile"] = P(self.raw_file.logical_name).with_suffix("").name
         return df.set_index("RawFile").reset_index()
 
     @property

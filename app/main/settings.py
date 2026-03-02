@@ -19,8 +19,10 @@ ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
 DEBUG = (ENVIRONMENT == "develop")
 
 HOSTNAME = os.getenv("HOSTNAME", "localhost")
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(",")
-CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS").split(",")
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", HOSTNAME).split(",")
+CSRF_TRUSTED_ORIGINS = os.getenv(
+    "CSRF_TRUSTED_ORIGINS", f"http://{HOSTNAME}"
+).split(",")
 
 print("ENVIRONMENT:", ENVIRONMENT)
 print("DEBUG:", DEBUG)

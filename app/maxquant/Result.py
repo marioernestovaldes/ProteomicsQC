@@ -3,6 +3,7 @@ import re
 import shutil
 import zipfile
 import subprocess
+import signal
 import pandas as pd
 import logging
 import datetime
@@ -599,6 +600,41 @@ class Result(models.Model):
         ]
 
     @property
+    def is_demo_input(self):
+        return self.input_source == "demo"
+
+    def _demo_stage_has_error(self, err_fn):
+        return err_fn.is_file() and err_fn.read_text(errors="ignore").strip() != ""
+
+    def _demo_maxquant_status(self):
+        err_fn = self.output_dir_maxquant / "maxquant.err"
+        out_fn = self.output_dir_maxquant / "maxquant.out"
+        done_fn = self.output_dir_maxquant / "time.txt"
+        if self._demo_stage_has_error(err_fn):
+            return "failed"
+        if done_fn.is_file():
+            return "done"
+        if out_fn.is_file() and self._has_success_text(out_fn, "Finish writing tables"):
+            return "done"
+        return "missing"
+
+    def _demo_rawtools_metrics_status(self):
+        err_fn = self.output_dir_rawtools / "rawtools_metrics.err"
+        if self._demo_stage_has_error(err_fn):
+            return "failed"
+        if all(fn.is_file() for fn in self.rawtools_metrics_expected_files):
+            return "done"
+        return "missing"
+
+    def _demo_rawtools_qc_status(self):
+        err_fn = self.output_dir_rawtools_qc / "rawtools_qc.err"
+        if self._demo_stage_has_error(err_fn):
+            return "failed"
+        if any(fn.is_file() for fn in self.rawtools_qc_expected_files):
+            return "done"
+        return "missing"
+
+    @property
     def maxquant_run_root(self):
         return COMPUTE_ROOT / "tmp" / "MaxQuant"
 
@@ -632,6 +668,8 @@ class Result(models.Model):
 
     @cached_property
     def maxquant_status(self):
+        if self.is_demo_input:
+            return self._demo_maxquant_status()
         err_fn = self.output_dir_maxquant / "maxquant.err"
         out_fn = self.output_dir_maxquant / "maxquant.out"
         done_fn = self.output_dir_maxquant / "time.txt"
@@ -724,6 +762,8 @@ class Result(models.Model):
 
     @cached_property
     def rawtools_metrics_status(self):
+        if self.is_demo_input:
+            return self._demo_rawtools_metrics_status()
         err_fn = self.output_dir_rawtools / "rawtools_metrics.err"
         done_fns = self.rawtools_metrics_expected_files
         started_stale_seconds = int(
@@ -795,6 +835,8 @@ class Result(models.Model):
 
     @cached_property
     def rawtools_qc_status(self):
+        if self.is_demo_input:
+            return self._demo_rawtools_qc_status()
         err_fn = self.output_dir_rawtools_qc / "rawtools_qc.err"
         done_fns = self.rawtools_qc_expected_files
         started_stale_seconds = int(
@@ -1159,10 +1201,10 @@ class Result(models.Model):
                 continue
             for pid in _pids_for_pattern(pattern):
                 matched_pids.add(pid)
-            for signal in ("TERM", "KILL"):
+            for pkill_signal in ("TERM", "KILL"):
                 try:
                     proc = subprocess.run(
-                        ["pkill", f"-{signal}", "-f", pattern],
+                        ["pkill", f"-{pkill_signal}", "-f", pattern],
                         capture_output=True,
                         text=True,
                         check=False,
@@ -1177,7 +1219,7 @@ class Result(models.Model):
                 elif proc.returncode > 1:
                     logging.warning(
                         "pkill -%s -f %s failed (rc=%s): %s",
-                        signal,
+                        pkill_signal,
                         pattern,
                         proc.returncode,
                         (proc.stderr or "").strip(),
@@ -1201,6 +1243,8 @@ class Result(models.Model):
 @receiver(models.signals.post_save, sender=Result)
 def run_maxquant_after_save(sender, instance, created, *args, **kwargs):
     if created:
+        if instance.input_source == "demo":
+            return
         instance.run()
         # Default new processed samples to be usable downstream; users can unmark later.
         if instance.raw_file.use_downstream is not True:

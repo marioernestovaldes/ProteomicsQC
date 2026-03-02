@@ -69,6 +69,28 @@ def _results_for_user(user):
     return queryset.filter(raw_file__created_by_id=user.id).distinct()
 
 
+def _demo_chromatogram_frame(multiplier=1, ms2=False):
+    rows = []
+    for minute in range(0, 91):
+        if ms2:
+            centers = (
+                (22 + multiplier, 90000, 4500),
+                (49 + multiplier, 180000, 5200),
+                (72 + multiplier, 110000, 4000),
+            )
+        else:
+            centers = (
+                (18 + multiplier, 140000, 6000),
+                (52 + multiplier, 240000, 7000),
+                (74 + multiplier, 120000, 5000),
+            )
+        intensity = 0
+        for center, height, slope in centers:
+            intensity += max(0, height - abs(minute - center) * slope)
+        rows.append({"Retention time": minute, "Intensity": intensity})
+    return pd.DataFrame(rows).set_index("Retention time")
+
+
 @login_required
 def maxquant_pipeline_view(request, project, pipeline):
     is_admin_session = request.user.is_staff or request.user.is_superuser
@@ -280,7 +302,9 @@ class ResultDetailView(LoginRequiredMixin, generic.DetailView):
         freshness_token = hashlib.sha1(
             "|".join(freshness_parts).encode("utf-8")
         ).hexdigest()
-        cache_key = f"mq-detail-v2:{mq_run.pk}:{freshness_token}"
+        cache_key = (
+            f"mq-detail-v3:{mq_run.pk}:{mq_run.input_source}:{freshness_token}"
+        )
         cached = cache.get(cache_key)
         if cached:
             context["figures"] = cached["figures"]
@@ -608,6 +632,7 @@ class ResultDetailView(LoginRequiredMixin, generic.DetailView):
                 return pd.DataFrame()
 
         fn = f"{path_rt}/{raw_fn}_Ms_TIC_chromatogram.txt"
+        df_ms = pd.DataFrame()
         if isfile(fn):
             df_ms = read_tsv_selected(
                 fn, exact_cols=["RetentionTime", "Intensity"]
@@ -617,6 +642,9 @@ class ResultDetailView(LoginRequiredMixin, generic.DetailView):
                     df_ms.rename(columns={"RetentionTime": "Retention time"})
                     .set_index("Retention time")
                 )
+        if df_ms.empty and mq_run.input_source == "demo":
+            df_ms = _demo_chromatogram_frame(multiplier=(mq_run.raw_file.pk or 1))
+        if not df_ms.empty:
             summary_stats.append({"label": "MS scans", "value": len(df_ms)})
             fig = lines_plot(
                 df_ms, cols=["Intensity"], title="MS TIC chromatogram"
@@ -624,6 +652,7 @@ class ResultDetailView(LoginRequiredMixin, generic.DetailView):
             add_figure(fig)
 
         fn = f"{path_rt}/{raw_fn}_Ms2_TIC_chromatogram.txt"
+        df_ms2 = pd.DataFrame()
         if isfile(fn):
             df_ms2 = read_tsv_selected(
                 fn, exact_cols=["RetentionTime", "Intensity"]
@@ -633,7 +662,12 @@ class ResultDetailView(LoginRequiredMixin, generic.DetailView):
                     df_ms2.rename(columns={"RetentionTime": "Retention time"})
                     .set_index("Retention time")
                 )
-
+        if df_ms2.empty and mq_run.input_source == "demo":
+            df_ms2 = _demo_chromatogram_frame(
+                multiplier=(mq_run.raw_file.pk or 1) + 3,
+                ms2=True,
+            )
+        if not df_ms2.empty:
             fig = lines_plot(
                 df_ms2, cols=["Intensity"], title="MS2 TIC chromatogram"
             )
@@ -1015,7 +1049,7 @@ class UploadRaw(LoginRequiredMixin, View):
                 )
                 data = {
                     "is_valid": True,
-                    "name": str(missing_result_raw.name),
+                    "name": str(missing_result_raw.logical_name),
                     "url": str(missing_result_raw.path),
                     "result_url": result.url,
                     "result_pk": result.pk,
@@ -1054,7 +1088,7 @@ class UploadRaw(LoginRequiredMixin, View):
             )
             data = {
                 "is_valid": True,
-                "name": str(raw_file.name),
+                "name": str(raw_file.logical_name),
                 "url": str(raw_file.path),
                 "result_url": result.url,
                 "result_pk": result.pk,
@@ -1102,6 +1136,16 @@ def queue_existing_run(request, pk):
     if not can_queue:
         return HttpResponseForbidden(
             "You cannot queue jobs for files uploaded by another user."
+        )
+    if result.input_source == "demo":
+        return JsonResponse(
+            {
+                "is_valid": False,
+                "error": "Demo runs are seeded examples and cannot be requeued.",
+                "status": result.overall_status,
+                "run": result.name,
+            },
+            status=409,
         )
     if result.has_active_stage:
         return JsonResponse(

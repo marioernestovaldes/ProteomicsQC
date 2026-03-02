@@ -12,7 +12,7 @@ class RawFileAdmin(admin.ModelAdmin):
     exclude = ("md5sum", "slug")
 
     list_display = (
-        "name",
+        "display_name",
         "project",
         "owner",
         "download",
@@ -26,7 +26,7 @@ class RawFileAdmin(admin.ModelAdmin):
     sortable_by = (
         "created",
         "pipeline",
-        "name",
+        "orig_file",
         "use_downstream",
         "flagged",
         "created_by",
@@ -49,6 +49,10 @@ class RawFileAdmin(admin.ModelAdmin):
     @admin.display(ordering="pipeline__project__name", description="Project")
     def project(self, obj):
         return obj.pipeline.project
+
+    @admin.display(ordering="orig_file", description="Name")
+    def display_name(self, obj):
+        return f"{obj.logical_name} ({obj.display_ref})"
 
     @admin.display(ordering="created_by__email", description="User")
     def owner(self, obj):
@@ -156,7 +160,7 @@ class ResultAdmin(admin.ModelAdmin):
     )
 
     list_display = (
-        "name",
+        "display_name",
         "project",
         "owner",
         "pipeline",
@@ -227,6 +231,10 @@ class ResultAdmin(admin.ModelAdmin):
 
     def project(self, obj):
         return obj.raw_file.pipeline.project
+
+    @admin.display(ordering="raw_file__orig_file", description="Name")
+    def display_name(self, obj):
+        return f"{obj.raw_file.logical_name} ({obj.raw_file.display_ref})"
 
     @admin.display(ordering="created_by__email", description="User")
     def owner(self, obj):

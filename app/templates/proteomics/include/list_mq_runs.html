@@ -63,8 +63,11 @@
         data-csrf-token="{{ csrf_token }}"
       >
         {% for maxquant_run in maxquant_runs %}
-          <tr data-run-name="{{ maxquant_run.raw_file|lower }}" data-overall-status="{{ maxquant_run.overall_status }}">
-            <td title="{{ maxquant_run.raw_file }}"><span class="mq-run-name">{{ maxquant_run.raw_file }}</span></td>
+          <tr data-run-name="{{ maxquant_run.raw_file.logical_name|lower }}" data-overall-status="{{ maxquant_run.overall_status }}">
+            <td title="{{ maxquant_run.raw_file.name }}">
+              <span class="mq-run-name">{{ maxquant_run.raw_file.logical_name }}</span>
+              <span class="mq-user-name">{{ maxquant_run.raw_file.display_ref }}</span>
+            </td>
             {% if is_admin_session %}
               <td class="mq-user-cell" title="{{ maxquant_run.raw_file.created_by.email }}">
                 <span class="mq-user-name">{{ maxquant_run.raw_file.created_by.email|default:"-" }}</span>
@@ -79,6 +82,10 @@
               {% if maxquant_run.has_active_stage %}
                 <button class="mq-open-link" type="button" disabled title="Already queued/running">
                   Queued
+                </button>
+              {% elif maxquant_run.input_source == "demo" %}
+                <button class="mq-open-link" type="button" disabled title="Demo runs are seeded examples and cannot be requeued">
+                  Demo
                 </button>
               {% elif request.user.is_superuser or request.user.is_staff or maxquant_run.raw_file.created_by_id == request.user.id %}
                 <button
@@ -123,8 +130,11 @@
           </tr>
         {% endfor %}
         {% for missing_raw_file in missing_raw_files %}
-          <tr data-run-name="{{ missing_raw_file.name|lower }}">
-            <td title="{{ missing_raw_file.name }}"><span class="mq-run-name">{{ missing_raw_file.name }}</span></td>
+          <tr data-run-name="{{ missing_raw_file.logical_name|lower }}">
+            <td title="{{ missing_raw_file.name }}">
+              <span class="mq-run-name">{{ missing_raw_file.logical_name }}</span>
+              <span class="mq-user-name">{{ missing_raw_file.display_ref }}</span>
+            </td>
             {% if is_admin_session %}
               <td class="mq-user-cell" title="{{ missing_raw_file.created_by.email }}">
                 <span class="mq-user-name">{{ missing_raw_file.created_by.email|default:"-" }}</span>

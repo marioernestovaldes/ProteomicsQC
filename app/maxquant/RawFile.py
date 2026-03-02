@@ -2,6 +2,7 @@ import os
 import hashlib
 import shutil
 import uuid
+import re
 
 from pathlib import Path as P
 
@@ -91,6 +92,19 @@ class RawFile(models.Model):
     @property
     def name(self):
         return P(self.orig_file.name).name
+
+    @property
+    def logical_name(self):
+        match = re.match(r"^[0-9a-f]{32}_(.+)$", self.name, re.IGNORECASE)
+        if match:
+            return match.group(1)
+        return self.name
+
+    @property
+    def display_ref(self):
+        if self.pk:
+            return f"rf{self.pk}"
+        return "rf?"
 
     @property
     def _legacy_path(self):
@@ -189,6 +203,8 @@ def move_rawfile_to_input_dir(sender, instance, created, *args, **kwargs):
     raw_file.make_output_dir()
 
     # Create Results only if not present yet
+    if getattr(raw_file, "_skip_auto_result", False):
+        return
     if raw_file.pipeline.has_maxquant_config:
         if len(Result.objects.filter(raw_file=raw_file)) == 0:
             Result.objects.create(raw_file=raw_file, input_source="upload")

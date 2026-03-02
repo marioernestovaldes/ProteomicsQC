@@ -20,7 +20,8 @@
           </div>
           <div class="run-meta-tile">
             <div class="run-meta-tile-label">Raw file</div>
-            <div class="run-meta-tile-value">{{ raw_file.name }}</div>
+            <div class="run-meta-tile-value">{{ raw_file.logical_name }}</div>
+            <div class="run-meta-tile-label">{{ raw_file.display_ref }}</div>
           </div>
         </div>
       </div>
@@ -49,7 +50,7 @@
 
   <br> 
 
-  <h3 class='name raw-file-title'><strong>Results for file:</strong> {{ object.raw_file }}</h3>
+  <h3 class='name raw-file-title'><strong>Results for file:</strong> {{ raw_file.logical_name }} <span class="mq-user-name">{{ raw_file.display_ref }}</span></h3>
 
   <div class="processing-status-card">
     <div class="processing-status-header">

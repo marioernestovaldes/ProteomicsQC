@@ -85,6 +85,7 @@ init:
 	make migrate
 	make createsuperuser
 	make collectstatic
+	make bootstrap-demo
 
 update:
 	git pull --recurse-submodules
@@ -110,3 +111,6 @@ schema:
 
 versions:
 	$(SUDO) $(COMPOSE) run web conda env export -n base
+
+bootstrap-demo:
+	$(SUDO) $(COMPOSE) run web python manage.py bootstrap_demo --user $${DEMO_USER:-user@email.com} --with-results

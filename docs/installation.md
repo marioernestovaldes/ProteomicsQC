@@ -29,9 +29,13 @@ This repository uses git submodules, so `--recursive` is required.
 
 This creates `.env` and the local data directories under `./data/`.
 
-!!! note "Review the `.env` file"
+For a normal local installation, you usually do not need to change anything yet. The generated defaults are enough to continue with `make init`.
 
-    The generated file contains the required defaults:
+Only review `.env` now if you already know you need a different hostname, storage location, or email setup.
+
+!!! note "Default local configuration"
+
+    The generated file includes local-safe defaults such as:
 
     ```dotenv
     # OMICS PIPELINES CONFIG
@@ -84,23 +88,6 @@ This creates `.env` and the local data directories under `./data/`.
     SECRET_KEY=...
     ```
 
-Update these values before exposing the service outside your machine:
-
-- `ALLOWED_HOSTS`: comma-separated hostnames or IPs Django should serve
-- `CSRF_TRUSTED_ORIGINS`: full origins such as `https://proteomics.example.org`
-- `OMICS_URL`: the base URL users actually open, for example `http://localhost:8080` in local production mode or your public `https://...` URL
-- Email settings if you want outbound email
-- Storage paths if you want data outside `./data`
-
-The queue is resource-aware. Before each task starts, the Celery worker checks host load and available memory. If thresholds are exceeded, the task is deferred and retried after `RESOURCE_RETRY_SECONDS`.
-
-For large pipelines, tune result-status responsiveness via:
-
-- `RESULT_STATUS_INSPECT_MAX_VISIBLE_RUNS`
-- `RESULT_STATUS_INSPECT_MAX_ACTIVE_RUNS`
-
-Lower values reduce expensive queue inspection and keep the UI responsive on large run lists.
-
 ## 4. First-time run
 
 Run:
@@ -145,6 +132,29 @@ make down
 ```
 
 ## 6. Production notes
+
+### Configuration notes
+
+If you are only running the application locally, the generated `.env` defaults are usually sufficient.
+
+Review `.env` before exposing the service outside your machine or when you need custom paths or email:
+
+- `ALLOWED_HOSTS`: comma-separated hostnames or IPs Django should serve
+- `CSRF_TRUSTED_ORIGINS`: full origins such as `https://proteomics.example.org`
+- `OMICS_URL`: the base URL users actually open, for example `http://localhost:8080` in local production mode or your public `https://...` URL
+- Email settings if you want outbound email
+- Storage paths if you want data outside `./data`
+
+### Developer notes
+
+The queue is resource-aware. Before each task starts, the Celery worker checks host load and available memory. If thresholds are exceeded, the task is deferred and retried after `RESOURCE_RETRY_SECONDS`.
+
+For large pipelines, tune result-status responsiveness via:
+
+- `RESULT_STATUS_INSPECT_MAX_VISIBLE_RUNS`
+- `RESULT_STATUS_INSPECT_MAX_ACTIVE_RUNS`
+
+Lower values reduce expensive queue inspection and keep the UI responsive on large run lists.
 
 ### Exposing the service
 `make serve` publishes the application on port `8080`. If you want to expose it on a real domain, place a reverse proxy such as NGINX in front of it and forward external traffic on ports `80` or `443` to port `8080`.

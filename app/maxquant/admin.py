@@ -13,9 +13,8 @@ class RawFileAdmin(admin.ModelAdmin):
 
     list_display = (
         "display_name",
-        "project",
         "owner",
-        "download",
+        "project",
         "pipeline",
         "use_downstream",
         "flagged",
@@ -168,8 +167,8 @@ class ResultAdmin(admin.ModelAdmin):
 
     list_display = (
         "display_name",
-        "project",
         "owner",
+        "project",
         "pipeline",
         "n_files_maxquant",
         "n_files_rawtools_metrics",

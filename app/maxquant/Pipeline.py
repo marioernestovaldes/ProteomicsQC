@@ -16,6 +16,7 @@ from .rawtools import RawToolsSetup
 from .MaxQuantParameter import MaxQuantParameter
 from .FastaFile import FastaFile
 from .RawFile import RawFile
+from .defaults import ensure_default_mqpar_for_pipeline
 
 DATALAKE_ROOT = settings.DATALAKE_ROOT
 COMPUTE_ROOT = settings.COMPUTE_ROOT
@@ -133,9 +134,7 @@ class Pipeline(MaxQuantParameter, FastaFile, RawToolsSetup):
 
     @property
     def has_maxquant_config(self):
-        if self.fasta_file.name and self.mqpar_file.name:
-            return True
-        return False
+        return self.fasta_path.is_file() and self.mqpar_path.is_file()
 
     @property
     def n_files(self):
@@ -154,10 +153,11 @@ def create_maxquant_path(sender, instance, created, *args, **kwargs):
         os.makedirs(mq_pipe.input_path)
         os.makedirs(mq_pipe.output_path)
 
-    # Move files only if files provided
-    if mq_pipe.has_maxquant_config:
+    if mq_pipe.fasta_file.name:
         mq_pipe.move_fasta_to_config()
+    if mq_pipe.mqpar_file.name:
         mq_pipe.move_mqpar_to_config()
+    ensure_default_mqpar_for_pipeline(mq_pipe)
 
 
 @receiver(models.signals.post_delete, sender=Pipeline)

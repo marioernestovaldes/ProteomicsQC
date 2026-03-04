@@ -7,7 +7,7 @@ services:
     image: ghcr.io/lewisresearchgroup/proteomicsqc:${IMAGE_TAG:-latest}
     env_file:
       - ./.env
-    command: /opt/conda/bin/python server.py
+    command: bash /app/start-web.sh /opt/conda/bin/python server.py
     volumes:
       - ./app/:/app/
       - ${DATALAKE}:/datalake/

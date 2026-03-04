@@ -95,3 +95,8 @@ body.app-maxquant.change-list #content-main > .object-tools {
         max-width: calc(100vw - 180px);
     }
 }
+
+body.app-maxquant.model-pipeline.add-form .form-row.field-project .related-widget-wrapper-link,
+body.app-maxquant.model-pipeline.change-form .form-row.field-project .related-widget-wrapper-link {
+    display: none;
+}

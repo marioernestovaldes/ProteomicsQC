@@ -30,10 +30,12 @@ from omics.proteomics.tools import load_rawtools_data_from, load_maxquant_data_f
 from omics.proteomics.maxquant.MaxquantReader import MaxquantReader
 
 from .tasks import rawtools_metrics, rawtools_qc, run_maxquant
+from .defaults import ensure_bundled_maxquant_installed
 
 DATALAKE_ROOT = settings.DATALAKE_ROOT
 COMPUTE_ROOT = settings.COMPUTE_ROOT
 COMPUTE = settings.COMPUTE
+DEFAULT_MAXQUANT_EXECUTABLE = settings.DEFAULT_MAXQUANT_EXECUTABLE
 
 
 def get_time_of_file_modification(fn):
@@ -90,7 +92,7 @@ class Result(models.Model):
 
     @property
     def run_dir(self):
-        return COMPUTE_ROOT / "tmp" / "MaxQuant" / f"{self.name}__rf{self.raw_file.pk}"
+        return COMPUTE_ROOT / "tmp" / "MaxQuant" / f"rf{self.raw_file.pk}"
 
     @property
     def pipename(self):
@@ -127,12 +129,10 @@ class Result(models.Model):
     @property
     def maxquantcmd(self):
         dotnet_cmd = os.getenv("DOTNET_CMD", "dotnet")
-        if (
-            self.raw_file.pipeline.maxquant_executable is None
-            or self.raw_file.pipeline.maxquant_executable == ""
-        ):
-            return "maxquant"
         exe = self.raw_file.pipeline.maxquant_executable
+        if exe is None or exe == "":
+            bundled = ensure_bundled_maxquant_installed()
+            exe = str(bundled) if bundled is not None else DEFAULT_MAXQUANT_EXECUTABLE
         exe_str = str(exe)
         exe_quoted = shlex.quote(exe_str)
         runtime = os.getenv("MAXQUANT_RUNTIME", "").lower()
@@ -185,7 +185,7 @@ class Result(models.Model):
             fasta_file=fasta_file,
             run_dir=run_dir,
             output_dir=output_dir,
-            add_uuid_to_rundir=True,
+            add_uuid_to_rundir=False,
             cleanup=True,
         )
         return params
@@ -649,15 +649,16 @@ class Result(models.Model):
 
     @cached_property
     def maxquant_run_dir_candidates(self):
-        # MaxquantRunner uses add_uuid_to_rundir=True, yielding directories like:
-        # <compute>/tmp/MaxQuant/<uuid>-<raw_basename>
+        # Current runs use a short deterministic directory:
+        # <compute>/tmp/MaxQuant/rf<raw_file_id>
+        # Older runs may still use nested or basename-derived layouts.
         raw_base = self.basename
         run_root = self.maxquant_run_root
         if not run_root.is_dir():
             return []
         candidates = []
+        candidates.append(run_root / f"rf{self.raw_file.pk}")
         candidates.extend(run_root.glob(f"*-{raw_base}"))
-        # keep backward-compatibility if add_uuid_to_rundir is disabled
         candidates.extend(
             [
                 run_root / raw_base,

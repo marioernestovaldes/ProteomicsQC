@@ -1,9 +1,38 @@
+from django import forms
 from django.contrib import admin
+from django.conf import settings
+
 from .models import (
     Pipeline,
     RawFile,
     Result,
 )
+from .defaults import ensure_bundled_maxquant_installed
+
+
+class PipelineAdminForm(forms.ModelForm):
+    class Meta:
+        model = Pipeline
+        fields = "__all__"
+
+    def clean(self):
+        cleaned_data = super().clean()
+        fasta_file = cleaned_data.get("fasta_file")
+        has_existing_fasta = bool(
+            self.instance and self.instance.pk and self.instance.fasta_path.is_file()
+        )
+
+        if not fasta_file and not has_existing_fasta:
+            self.add_error(
+                "fasta_file",
+                (
+                    "A FASTA file is required to create a runnable pipeline. "
+                    "Browsers clear selected file inputs after validation errors, "
+                    "so if another field fails validation you must choose the FASTA file again."
+                ),
+            )
+
+        return cleaned_data
 
 
 class RawFileAdmin(admin.ModelAdmin):
@@ -81,6 +110,7 @@ class RawFileAdmin(admin.ModelAdmin):
 
 
 class PipelineAdmin(admin.ModelAdmin):
+    form = PipelineAdminForm
 
     ordering = ("name",)
 
@@ -108,6 +138,89 @@ class PipelineAdmin(admin.ModelAdmin):
         ("RawTools", {"fields": ("rawtools_args",)}),
         ("Info", {"fields": ("slug", "uuid", "path", "fasta_path", "mqpar_path")}),
     )
+
+    def _default_pipeline_name(self):
+        index = 1
+        while True:
+            candidate = f"Pipeline {index}"
+            if not Pipeline.objects.filter(name=candidate).exists():
+                return candidate
+            index += 1
+
+    def get_changeform_initial_data(self, request):
+        initial = super().get_changeform_initial_data(request)
+
+        ensure_bundled_maxquant_installed()
+
+        if not initial.get("maxquant_executable"):
+            initial["maxquant_executable"] = settings.DEFAULT_MAXQUANT_EXECUTABLE
+
+        if not initial.get("name"):
+            initial["name"] = self._default_pipeline_name()
+
+        if not initial.get("description"):
+            initial["description"] = (
+                "Describe the pipeline purpose, processing settings, and sample scope."
+            )
+
+        return initial
+
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        if db_field.name == "maxquant_executable":
+            ensure_bundled_maxquant_installed()
+        formfield = super().formfield_for_dbfield(db_field, request, **kwargs)
+
+        if db_field.name == "project" and hasattr(formfield.widget, "can_add_related"):
+            formfield.widget.can_add_related = False
+            formfield.widget.can_change_related = False
+            formfield.widget.can_delete_related = False
+            formfield.widget.can_view_related = False
+
+        if db_field.name == "maxquant_executable":
+            choices = []
+            for value, label in formfield.choices:
+                if value == settings.DEFAULT_MAXQUANT_EXECUTABLE:
+                    label = settings.DEFAULT_MAXQUANT_LABEL
+                choices.append((value, label))
+            formfield.choices = choices
+            formfield.help_text = (
+                "Bundled MaxQuant 2.4.12.0 is installed automatically and recommended. "
+                "Choose a different installed executable only if needed."
+            )
+
+        if db_field.name == "mqpar_file":
+            formfield.help_text = (
+                "Leave this empty to use the bundled mqpar_2.4.12.0.xml template that matches "
+                "the recommended MaxQuant version. Upload a file only to override it."
+            )
+
+        if db_field.name == "fasta_file":
+            formfield.help_text = (
+                "Required. If the form fails validation for any reason, browsers clear file "
+                "inputs, so you must select the FASTA file again before saving."
+            )
+
+        return formfield
+
+    def get_fieldsets(self, request, obj=None):
+        if obj is not None:
+            return super().get_fieldsets(request, obj)
+
+        return (
+            (None, {"fields": ("project", "name", "created", "created_by", "description")}),
+            (
+                "MaxQuant",
+                {
+                    "fields": (
+                        "maxquant_executable",
+                        "mqpar_file",
+                        "fasta_file",
+                    )
+                },
+            ),
+            ("RawTools", {"fields": ("rawtools_args",)}),
+            ("Info", {"fields": ("slug", "uuid", "path", "fasta_path", "mqpar_path")}),
+        )
 
     def get_readonly_fields(self, request, obj=None):
         if obj:

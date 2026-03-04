@@ -205,6 +205,16 @@ CELERY_RESULT_BACKEND = "redis://redis:6379"
 
 
 AUTH_USER_MODEL = "user.User"
+DEFAULT_MAXQUANT_EXECUTABLE = os.getenv("DEFAULT_MAXQUANT_EXECUTABLE")
+DEFAULT_MAXQUANT_LABEL = os.getenv(
+    "DEFAULT_MAXQUANT_LABEL",
+    "Bundled MaxQuant 2.4.12.0 (recommended)",
+)
+DEFAULT_MQPAR_TEMPLATE = os.getenv(
+    "DEFAULT_MQPAR_TEMPLATE",
+    str(BASE_DIR / "seed" / "defaults" / "config" / "mqpar_2.4.12.0.xml"),
+)
+RAWTOOLS_COMMAND = os.getenv("RAWTOOLS_COMMAND", "/opt/conda/bin/rawtools.sh")
 
 
 import sys
@@ -239,6 +249,11 @@ if "test" in sys.argv or any("pytest" in arg for arg in sys.argv):
 else:
     DATALAKE_ROOT = _resolve_storage_root("DATALAKE", "/datalake/")
     COMPUTE_ROOT = _resolve_storage_root("COMPUTE", "/compute/")
+
+if DEFAULT_MAXQUANT_EXECUTABLE is None:
+    DEFAULT_MAXQUANT_EXECUTABLE = str(
+        COMPUTE_ROOT / "software" / "MaxQuant" / "MaxQuant_v_2.4.12.0" / "bin" / "MaxQuantCmd.exe"
+    )
 
 
 class MediaFileSystemStorage(FileSystemStorage):

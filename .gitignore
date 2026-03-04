@@ -16,6 +16,7 @@ nohup.out
 data
 !app/tests/omics/data/
 !app/tests/omics/data/**
+app/seed/defaults/maxquant/*.zip
 node_modules/
 logs.log
 venv/

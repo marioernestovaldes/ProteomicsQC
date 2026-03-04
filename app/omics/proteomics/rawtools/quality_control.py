@@ -4,8 +4,14 @@ import pandas as pd
 from os.path import isdir, isfile, dirname, abspath, join
 from glob import glob
 from pathlib import Path as P
+from shlex import quote
+
+from django.conf import settings
 
 from ...common import relative_path, maybe_create_symlink, get_all_raws
+
+
+RAWTOOLS_COMMAND = quote(settings.RAWTOOLS_COMMAND)
 
 
 def collect_rawtools_qc_data(root_path):
@@ -112,7 +118,7 @@ def rawtools_metrics_cmd(
     os.makedirs(output_dir, exist_ok=True)
     if not isfile(join(output_dir, f"{raw_basename}_Matrix.txt")) or rerun:
         cmd = (
-            f'cd "{output_dir}"; rawtools.sh -f "{raw}" -o "{output_dir}" '
+            f'cd "{output_dir}"; {RAWTOOLS_COMMAND} -f "{raw}" -o "{output_dir}" '
             f"{arguments}  2>rawtools_metrics.err 1>rawtools_metrics.out"
         )
     else:
@@ -130,7 +136,7 @@ def rawtools_qc_cmd(input_dir, output_dir, rerun=False):
     os.makedirs(output_dir, exist_ok=True)
     if not isfile(join(output_dir, "QcDataTable.csv")) or rerun:
         cmd = (
-            f'cd "{output_dir}"; rawtools.sh -d "{input_dir}" '
+            f'cd "{output_dir}"; {RAWTOOLS_COMMAND} -d "{input_dir}" '
             f'-qc "{output_dir}" 2>rawtools_qc.err 1>rawtools_qc.out'
         )
     else:

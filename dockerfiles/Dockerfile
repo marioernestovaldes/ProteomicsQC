@@ -21,6 +21,7 @@ RUN chmod +x Miniforge3-Linux-x86_64.sh && bash Miniforge3-Linux-x86_64.sh -b -p
 
 # Downgrade conda python to python 3.10
 RUN /opt/conda/bin/conda install -y python=3.10
+ENV PATH="/opt/conda/bin:${PATH}"
 
 # allow running dotnet without ICU globalization data if needed
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
@@ -39,6 +40,7 @@ RUN curl -SL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \
 RUN /opt/conda/bin/conda install --override-channels -c conda-forge -c bioconda pip uv || true
 RUN /opt/conda/bin/conda install --override-channels -c conda-forge -c bioconda rawtools || true
 RUN /opt/conda/bin/conda install --override-channels -c conda-forge -c bioconda mono || true
+RUN /opt/conda/bin/conda install --override-channels -c conda-forge -c bioconda maxquant=2.0.3.0
 
 COPY requirements.txt requirements.txt
 

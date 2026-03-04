@@ -153,7 +153,9 @@ class MaxquantRunner:
             else:
                 shutil.rmtree(tgt_dir)
 
-        run_raw_ref = P(run_dir) / P(raw_file).name
+        staged_raw_name = "input" + P(raw_file).suffix.lower()
+        staged_raw_label = P(staged_raw_name).stem
+        run_raw_ref = P(run_dir) / staged_raw_name
         run_mqpar = P(run_dir) / P(self._mqpar).name
         run_sbatch = P(run_dir) / "run.sbatch"
 
@@ -173,7 +175,7 @@ class MaxquantRunner:
             f"cp time.txt maxquant.err maxquant.out {run_mqpar} {run_dir}/combined/txt/",
             f"mv {run_dir}/combined/txt/* {tgt_dir}",
             f"rm -rf {run_dir}/combined",
-            f"rm -rf {run_dir}/{raw_label}",
+            f"rm -rf {run_dir}/{staged_raw_label}",
             f"ls -artlh {tgt_dir}"
         ]
 

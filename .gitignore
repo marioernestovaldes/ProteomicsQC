@@ -5,6 +5,7 @@
 *egg-info*
 __pycache__
 .*
+!.gitattributes
 devel
 output
 build

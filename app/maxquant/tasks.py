@@ -90,26 +90,39 @@ def _is_canceled_result(result_id):
 def _terminate_process_group(proc, grace_seconds=5):
     if proc is None:
         return
+    pgid = proc.pid
     try:
-        os.killpg(proc.pid, signal.SIGTERM)
+        os.killpg(pgid, signal.SIGTERM)
     except ProcessLookupError:
         return
     except Exception as exc:
-        logging.warning("Failed to SIGTERM process group for pid=%s: %s", proc.pid, exc)
+        logging.warning("Failed to SIGTERM process group for pid=%s: %s", pgid, exc)
         return
+
+    def _pg_exists(group_id):
+        try:
+            os.killpg(group_id, 0)
+            return True
+        except ProcessLookupError:
+            return False
+        except PermissionError:
+            # Process group exists but is not signalable by this user.
+            return True
+        except Exception:
+            return True
 
     deadline = time.monotonic() + max(0, grace_seconds)
     while time.monotonic() < deadline:
-        if proc.poll() is not None:
+        if not _pg_exists(pgid):
             return
         time.sleep(0.2)
 
     try:
-        os.killpg(proc.pid, signal.SIGKILL)
+        os.killpg(pgid, signal.SIGKILL)
     except ProcessLookupError:
         return
     except Exception as exc:
-        logging.warning("Failed to SIGKILL process group for pid=%s: %s", proc.pid, exc)
+        logging.warning("Failed to SIGKILL process group for pid=%s: %s", pgid, exc)
 
 
 def _run_cancelable_shell_command(cmd, kind, result_id=None):
@@ -217,4 +230,9 @@ def run_maxquant(self, raw_file, params, rerun=False, result_id=None):
     mq = MaxquantRunner(verbose=True, **params)
     logging.info(f"[run_maxquant] raw_file={raw_file} params={params} rerun={rerun}")
     print(f"[run_maxquant] raw_file={raw_file} params={params} rerun={rerun}")
-    mq.run(raw_file, rerun=rerun)
+    # Prepare run dirs/files via MaxquantRunner, but execute through the
+    # cancel-aware shell runner so cancel requests can stop active MaxQuant jobs.
+    cmd = mq.run(raw_file, rerun=rerun, run=False)
+    if cmd is None:
+        return
+    _run_cancelable_shell_command(cmd, kind="run_maxquant", result_id=result_id)

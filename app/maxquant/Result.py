@@ -1121,12 +1121,18 @@ class Result(models.Model):
         ]
 
     def cancel_active_jobs(self):
+        # Mark cancel first so running tasks can cooperatively stop themselves.
+        # This avoids relying on hard worker termination, which can leave child
+        # shell/mono processes orphaned.
+        self.cancel_requested_at = timezone.now()
+        self.save(update_fields=["cancel_requested_at"])
+
         revoked = 0
         for task_id in self.task_ids:
             if not task_id:
                 continue
             try:
-                current_app.control.revoke(task_id, terminate=True, signal="SIGTERM")
+                current_app.control.revoke(task_id, terminate=False)
                 revoked += 1
             except Exception as exc:
                 logging.warning(
@@ -1145,8 +1151,6 @@ class Result(models.Model):
                 self.basename,
             )
 
-        self.cancel_requested_at = timezone.now()
-        self.save(update_fields=["cancel_requested_at"])
         # Invalidate status caches so reused instances recompute with cancel state.
         for key in (
             "maxquant_status",

@@ -380,6 +380,9 @@ RESULT_STATUS_RAWTOOLS_STALE_SECONDS = _env_int(
 RESULT_STATUS_ACTIVITY_FALLBACK_SECONDS = _env_int(
     "RESULT_STATUS_ACTIVITY_FALLBACK_SECONDS", 300
 )
+RESULT_STATUS_CANCEL_ACTIVITY_SECONDS = _env_int(
+    "RESULT_STATUS_CANCEL_ACTIVITY_SECONDS", 20
+)
 
 # Adaptive queue-inspect strictness:
 # small pages => stricter queue inspection, large pages => faster rendering.

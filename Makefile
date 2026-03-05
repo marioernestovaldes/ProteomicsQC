@@ -36,7 +36,7 @@ serve:
 	@until curl -sf http://localhost:8080/ >/dev/null; do \
 		sleep 2; \
 	done
-	@echo "server is responding"
+	@echo "Server is responding"
 	@xdg-open http://localhost:8080 2>/dev/null || open http://localhost:8080 2>/dev/null || true
 	@echo "Tailing web logs (Ctrl+C to stop logs; stack keeps running)..."
 	$(SUDO) $(COMPOSE) -f docker-compose.yml logs -f web celery
@@ -45,10 +45,17 @@ devel:
 	$(SUDO) $(COMPOSE) -f docker-compose-develop.yml down
 	$(SUDO) $(COMPOSE) -f docker-compose-develop.yml up -d
 	@echo "Waiting for dev server on http://127.0.0.1:8000 ..."
-	@until curl -sf http://127.0.0.1:8000/ >/dev/null; do \
+	@elapsed=0; i=0; \
+	spinner='|/-\\'; \
+	until curl -sf http://127.0.0.1:8000/ >/dev/null; do \
+		c=$$(printf "%s" "$$spinner" | cut -c $$((i % 4 + 1))); \
+		printf "\rStarting dev server... [%s] %ss elapsed" "$$c" "$$elapsed"; \
 		sleep 2; \
-	done
-	@echo "server is responding"
+		elapsed=$$((elapsed + 2)); \
+		i=$$((i + 1)); \
+	done; \
+	printf "\rStarting dev server... [OK] %ss elapsed\n" "$$elapsed"
+	@echo "Server is responding"
 	@xdg-open http://127.0.0.1:8000 2>/dev/null || open http://127.0.0.1:8000 2>/dev/null || true
 	@echo "Tailing web logs (Ctrl+C to stop logs; stack keeps running)..."
 	$(SUDO) $(COMPOSE) -f docker-compose-develop.yml logs -f web celery
@@ -57,10 +64,17 @@ devel-build:
 	$(SUDO) $(COMPOSE) -f docker-compose-develop.yml down
 	$(SUDO) $(COMPOSE) -f docker-compose-develop.yml up -d --build
 	@echo "Waiting for dev server on http://127.0.0.1:8000 ..."
-	@until curl -sf http://127.0.0.1:8000/ >/dev/null; do \
+	@elapsed=0; i=0; \
+	spinner='|/-\\'; \
+	until curl -sf http://127.0.0.1:8000/ >/dev/null; do \
+		c=$$(printf "%s" "$$spinner" | cut -c $$((i % 4 + 1))); \
+		printf "\rStarting dev server... [%s] %ss elapsed" "$$c" "$$elapsed"; \
 		sleep 2; \
-	done
-	@echo "server is responding"
+		elapsed=$$((elapsed + 2)); \
+		i=$$((i + 1)); \
+	done; \
+	printf "\rStarting dev server... [OK] %ss elapsed\n" "$$elapsed"
+	@echo "Server is responding"
 	@xdg-open http://127.0.0.1:8000 2>/dev/null || open http://127.0.0.1:8000 2>/dev/null || true
 	@echo "Tailing web logs (Ctrl+C to stop logs; stack keeps running)..."
 	$(SUDO) $(COMPOSE) -f docker-compose-develop.yml logs -f web celery

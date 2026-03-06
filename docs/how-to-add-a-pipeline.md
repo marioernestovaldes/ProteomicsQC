@@ -19,7 +19,6 @@ Here, fill up the editable fields (name and a description).
 3. Add a `mqpar.xml` (MaxQuant parameter file) generated with _MaxQuant_. The file should be generated with a single `.raw` file and the _MaxQuant_ version should match the [version used in the pipeline](maxquant.md).
 4. Provide command line parameters for [RawTools](https://github.com/kevinkovalchik/RawTools). Read [Rawtools Help](rawtools.md) for more information.
 
-> Not all _MaxQuant_ versions are compatible with _Proteomics QC_. We recommend using the [default version](maxquant.md) if possible.
+> Not all _MaxQuant_ versions are compatible with _LAMPrEY_. We recommend using the [default version](maxquant.md) if possible.
 
 Finally, click on `SAVE`.
-

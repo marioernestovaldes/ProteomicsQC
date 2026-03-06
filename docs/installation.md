@@ -30,12 +30,12 @@ This guide uses `make` targets such as `make init` and `make devel` as shortcuts
 
 ```bash
 git lfs install
-git clone git@github.com:LewisResearchGroup/ProteomicsQC.git ProteomicsQC
-cd ProteomicsQC
+git clone git@github.com:LewisResearchGroup/ProteomicsQC.git LAMPrEY
+cd LAMPrEY
 git lfs pull
 ```
 
-This repository stores the bundled MaxQuant executable ZIP with Git LFS. If `git-lfs` is missing, the clone will contain a small pointer file instead of `app/seed/defaults/maxquant/MaxQuant_v_2.4.12.0.zip`.
+This repository stores the bundled MaxQuant executable ZIP with Git LFS. If `git-lfs` is missing, the clone will contain a small pointer file to `MaxQuant_v_2.4.12.0.zip` at `app/seed/defaults/maxquant`.
 
 ??? note "If `git lfs` is missing or the MaxQuant ZIP is still a pointer file"
 
@@ -72,10 +72,10 @@ Only review `.env` now if you already know you need a different hostname, storag
     The generated file includes local-safe defaults such as:
 
     ```dotenv
-    # OMICS PIPELINES CONFIG
+    # LAMPrEY CONFIG
 
     ## HOMEPAGE SETTINGS
-    HOME_TITLE='Proteomics Pipelines'
+    HOME_TITLE='LAMPrEY'
     HOSTNAME=localhost
     ALLOWED_HOSTS=localhost
     CSRF_TRUSTED_ORIGINS=http://localhost

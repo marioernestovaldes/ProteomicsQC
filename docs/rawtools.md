@@ -15,7 +15,7 @@ More information is available in the Github [repository](https://github.com/kevi
 
 
 ## Parameters
-Here is the help text that explains the different parameters of _RawTools_ that are relevant for _Proteomics QC_. However, not all of them were tested.
+Here is the help text that explains the different parameters of _RawTools_ that are relevant for _LAMPrEY_. However, not all of them were tested.
 
 
 ```raw

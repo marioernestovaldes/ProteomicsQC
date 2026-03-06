@@ -9,6 +9,6 @@ The software offers a wide range of features, including peptide and protein iden
 
 MaxQuant's user-friendly interface and powerful algorithms make it an indispensable tool for proteomics researchers. Whether you are performing targeted or exploratory analysis, MaxQuant provides accurate and reliable results that enable you to draw meaningful conclusions from your data. With MaxQuant, you can unlock the full potential of your proteomics data and accelerate your research.
 
-The ProteomicsQC pipeline uses MaxQuant to process individual and independent ThermoFisher RAW files. To generate an input parameter file for the ProteomicsQC, a local installation of MaxQuant must be installed and setup with an example RAW files and the desired search parameters. Only one RAW file should be used to do so. Then the search parameters must be exported and can be uploaded to ProteomicsQC.
+The LAMPrEY pipeline uses MaxQuant to process individual and independent ThermoFisher RAW files. To generate an input parameter file for LAMPrEY, a local installation of MaxQuant must be installed and setup with example RAW files and the desired search parameters. Only one RAW file should be used to do so. Then the search parameters must be exported and can be uploaded to LAMPrEY.
 
 The repository also includes a bundled MaxQuant executable ZIP under `app/seed/defaults/maxquant/`. That asset is stored with Git LFS, so contributors and operators should install `git-lfs` before cloning the repository.

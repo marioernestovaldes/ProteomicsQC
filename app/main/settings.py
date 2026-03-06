@@ -12,7 +12,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY")
-HOME_TITLE = os.getenv("HOME_TITLE", "Django-3 Omics Pipelines")
+HOME_TITLE = os.getenv("HOME_TITLE", "LAMPrEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 ENVIRONMENT = os.getenv("ENVIRONMENT", "production")

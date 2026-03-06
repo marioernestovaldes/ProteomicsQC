@@ -61,6 +61,7 @@
         id="mq-runs-list"
         data-cancel-run-base="{% url 'maxquant:cancel_run_jobs' 0 %}"
         data-csrf-token="{{ csrf_token }}"
+        data-total-count="{{ maxquant_runs.paginator.count|add:missing_raw_files_count }}"
       >
         {% for maxquant_run in maxquant_runs %}
           <tr data-run-name="{{ maxquant_run.raw_file.logical_name|lower }}" data-overall-status="{{ maxquant_run.overall_status }}">
@@ -246,9 +247,8 @@
     };
 
     const updateCount = () => {
-      const rows = Array.from(tbody.querySelectorAll("tr[data-run-name]"));
-      const visible = rows.filter((row) => row.style.display !== "none").length;
-      count.textContent = `${visible} file${visible === 1 ? "" : "s"}`;
+      const total = Number(tbody.dataset.totalCount || 0);
+      count.textContent = `${total} file${total === 1 ? "" : "s"}`;
     };
 
     let autoRefreshTimer = null;

@@ -95,6 +95,7 @@ def _demo_chromatogram_frame(multiplier=1, ms2=False):
 def maxquant_pipeline_view(request, project, pipeline):
     is_admin_session = request.user.is_staff or request.user.is_superuser
     selected_uploader_filter = request.GET.get("uploader", "").strip()
+    selected_search_term = request.GET.get("q", "").strip()
     selected_uploader_id = None
     if is_admin_session and selected_uploader_filter:
         try:
@@ -104,7 +105,7 @@ def maxquant_pipeline_view(request, project, pipeline):
 
     # Pattern to store form data in session
     # to make pagination work with search form
-    def _runs_queryset(raw_file_regex=""):
+    def _runs_queryset(raw_file_regex="", raw_file_term=""):
         queryset = _results_for_user(request.user).filter(
             raw_file__pipeline__slug=pipeline,
             raw_file__pipeline__project__slug=project,
@@ -113,26 +114,16 @@ def maxquant_pipeline_view(request, project, pipeline):
             queryset = queryset.filter(
                 raw_file__orig_file__iregex=raw_file_regex,
             )
+        if raw_file_term:
+            queryset = queryset.filter(raw_file__orig_file__icontains=raw_file_term)
         if selected_uploader_id is not None:
             queryset = queryset.filter(raw_file__created_by_id=selected_uploader_id)
         return queryset.order_by("-created")
 
     maxquant_runs = _runs_queryset()
-
-    if not request.method == "POST":
-        if "search-files" in request.session:
-            request.POST = request.session["search-files"]
-            request.method = "POST"
-        else:
-            form = SearchResult(request.POST)
-
-    if request.method == "POST":
-        request.session["search-files"] = request.POST
-        form = SearchResult(request.POST)
-        if form.is_valid():
-            maxquant_runs = _runs_queryset(
-                raw_file_regex=form.cleaned_data["raw_file"]
-            )
+    form = SearchResult()
+    if selected_search_term:
+        maxquant_runs = _runs_queryset(raw_file_term=selected_search_term)
 
     page = request.GET.get("page", 1)
     paginator = Paginator(maxquant_runs, settings.PAGINATE)
@@ -151,6 +142,10 @@ def maxquant_pipeline_view(request, project, pipeline):
     missing_raw_files = RawFile.objects.filter(
         pipeline=pipeline, result__isnull=True
     ).select_related("created_by").order_by("-created")
+    if selected_search_term:
+        missing_raw_files = missing_raw_files.filter(
+            orig_file__icontains=selected_search_term
+        )
     if not is_admin_session:
         missing_raw_files = missing_raw_files.filter(created_by_id=request.user.id)
     elif selected_uploader_id is not None:
@@ -212,6 +207,7 @@ def maxquant_pipeline_view(request, project, pipeline):
     context["is_admin_session"] = is_admin_session
     context["uploader_filters"] = uploader_filters
     context["selected_uploader_filter"] = selected_uploader_id
+    context["selected_search_term"] = selected_search_term
     context["missing_raw_files_count"] = missing_raw_files.count()
     context["missing_raw_files"] = missing_raw_files
     query_params = request.GET.copy()

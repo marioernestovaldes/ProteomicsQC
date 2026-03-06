@@ -2,7 +2,7 @@
   <form id="mq-cancel-csrf-form" style="display:none;">{% csrf_token %}</form>
   <h2 class='name' style="font-size: 18px; color: var(--color-text-muted);"><strong>Explore .raw files processed with this pipeline</strong></h2>
   <div class="mq-runs-toolbar">
-    <input id="mq-runs-search" type="text" placeholder="Filter by file name..." aria-label="Filter raw files">
+    <input id="mq-runs-search" type="text" placeholder="Filter by file name..." aria-label="Filter raw files" value="{{ selected_search_term|default:'' }}">
     {% if is_admin_session %}
       <select id="mq-runs-user-filter" class="mq-runs-user-filter" aria-label="Filter by uploader">
         <option value="">All users</option>
@@ -288,14 +288,22 @@
       return response.json();
     };
 
+    let searchDebounce = null;
     search.addEventListener("input", () => {
-      const needle = search.value.trim().toLowerCase();
-      const rows = Array.from(tbody.querySelectorAll("tr[data-run-name]"));
-      rows.forEach((row) => {
-        const hay = row.getAttribute("data-run-name") || "";
-        row.style.display = hay.includes(needle) ? "" : "none";
-      });
-      updateCount();
+      if (searchDebounce) {
+        clearTimeout(searchDebounce);
+      }
+      searchDebounce = setTimeout(() => {
+        const url = new URL(window.location.href);
+        const needle = search.value.trim();
+        if (needle) {
+          url.searchParams.set("q", needle);
+        } else {
+          url.searchParams.delete("q");
+        }
+        url.searchParams.delete("page");
+        window.location.assign(url.toString());
+      }, 250);
     });
 
     if (userFilter) {

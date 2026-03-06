@@ -256,6 +256,9 @@
     const hasActiveRuns = () => {
       return tbody.querySelectorAll("tr[data-overall-status='running'], tr[data-overall-status='queued']").length > 0;
     };
+    const uploadsInProgress = () => {
+      return Boolean(window.__mqUploadsInProgress);
+    };
 
     const updateCancelAllState = () => {
       if (!cancelAllBtn) return;
@@ -433,6 +436,9 @@
         // Avoid reloading while tab is backgrounded; browser throttling can
         // delay timers unpredictably and lead to confusing bursts of reloads.
         if (document.hidden) return;
+        // Upload queue state lives in a different script; pause page refreshes
+        // while uploads are running so in-flight uploads are not interrupted.
+        if (uploadsInProgress()) return;
         if (!hasActiveRuns()) {
           clearInterval(autoRefreshTimer);
           autoRefreshTimer = null;
@@ -444,5 +450,9 @@
     };
 
     startAutoRefresh();
+    window.addEventListener("mq-upload-activity", () => {
+      // Re-evaluate timer state whenever uploads start/stop.
+      startAutoRefresh();
+    });
   })();
 </script>

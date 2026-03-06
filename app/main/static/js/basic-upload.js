@@ -1,6 +1,20 @@
 $(function () {
   let shouldRefreshAfterUpload = false;
   let uploadSeq = 0;
+  let activeUploadCount = 0;
+
+  function setUploadActivity(delta) {
+    activeUploadCount = Math.max(0, activeUploadCount + delta);
+    const active = activeUploadCount > 0;
+    window.__mqUploadsInProgress = active;
+    try {
+      window.dispatchEvent(new CustomEvent("mq-upload-activity", {
+        detail: { active: active, count: activeUploadCount },
+      }));
+    } catch (_err) {
+      // Ignore event dispatch issues; the global flag is still updated.
+    }
+  }
 
   function escapeHtml(value) {
     return String(value)
@@ -117,6 +131,7 @@ $(function () {
     dataType: 'json',
     sequentialUploads: true,  /* 1. SEND THE FILES ONE BY ONE */
     add: function (e, data) {
+      setUploadActivity(1);
       if (data.files && data.files.length > 0) {
         data.uploadId = createQueueRow(data.files[0]);
       }
@@ -193,6 +208,9 @@ $(function () {
         message = "Upload conflict detected. The file may already exist in this pipeline.";
       }
       showUploadFeedback("error", message);
+    },
+    always: function () {
+      setUploadActivity(-1);
     }
 
   });

@@ -333,7 +333,7 @@ if EMAIL_HOST is not None:
 
 GANALYTICS = os.getenv("GANALYTICS")
 
-PAGINATE = 100
+PAGINATE = 10
 
 
 # Django REST Framework settings

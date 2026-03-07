@@ -30,3 +30,12 @@ jobs:
       run: |
         touch .env
         docker compose -f docker-compose-test.yml run --rm web /opt/conda/bin/python -m pytest
+
+    - name: Run runtime smoke test in container
+      env:
+        UID: 1000
+        CONCURRENCY: 1
+        ALLOWED_HOSTS: "localhost,127.0.0.1,0.0.0.0"
+      run: |
+        touch .env
+        docker compose -f docker-compose-test.yml run --rm web /opt/conda/bin/python /app/scripts/runtime_smoke_check.py

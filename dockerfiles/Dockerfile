@@ -35,11 +35,10 @@ RUN curl -SL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \
     && ln -sf /usr/share/dotnet/dotnet /usr/bin/dotnet \
     && rm /tmp/dotnet-install.sh
 
-# add uv package really fast for installations; override channels to avoid TOS prompts
-# Note: mono may not be available on ARM64, install what's available
-RUN /opt/conda/bin/conda install --override-channels -c conda-forge -c bioconda pip uv || true
-RUN /opt/conda/bin/conda install --override-channels -c conda-forge -c bioconda rawtools || true
-RUN /opt/conda/bin/conda install --override-channels -c conda-forge -c bioconda mono || true
+# add uv package really fast for installations; fail the image build if runtime deps are missing
+RUN /opt/conda/bin/conda install --override-channels -c conda-forge -c bioconda pip uv
+RUN /opt/conda/bin/conda install --override-channels -c conda-forge -c bioconda rawtools
+RUN /opt/conda/bin/conda install --override-channels -c conda-forge -c bioconda mono
 RUN /opt/conda/bin/conda install --override-channels -c conda-forge -c bioconda maxquant=2.0.3.0
 
 COPY requirements.txt requirements.txt
@@ -62,4 +61,11 @@ RUN mkdir -p /app/main/static/dash/component_data/plotly/package_data \
 
 WORKDIR /app/
 
-RUN dotnet --list-runtimes
+RUN command -v /opt/conda/bin/uv \
+    && command -v /opt/conda/bin/rawtools.sh \
+    && command -v /opt/conda/bin/mono \
+    && command -v dotnet \
+    && /opt/conda/bin/mono --version \
+    && dotnet --list-runtimes
+
+RUN /opt/conda/bin/python /app/scripts/runtime_smoke_check.py

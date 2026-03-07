@@ -233,6 +233,35 @@ def compute_flag_proposals(qc_data, predictions):
     }
 
 
+def apply_anomaly_flag_changes(proposal, project, pipeline, user, n_clicks):
+    if not n_clicks:
+        raise PreventUpdate
+    if not proposal:
+        return "No anomaly flag changes to apply.", dash.no_update
+    if project != proposal.get("project") or pipeline != proposal.get("pipeline"):
+        return "Scope changed. Recompute anomaly preview before applying.", dash.no_update
+    if user is None:
+        return "Missing user context.", dash.no_update
+
+    run_keys_to_flag = list(proposal.get("run_keys_to_flag") or [])
+    run_keys_to_unflag = list(proposal.get("run_keys_to_unflag") or [])
+
+    if run_keys_to_flag:
+        response = T.set_rawfile_action(project, pipeline, run_keys_to_flag, "flag", user=user)
+        if response.get("status") != "success":
+            return response.get("status", "Could not apply anomaly flags."), dash.no_update
+    if run_keys_to_unflag:
+        response = T.set_rawfile_action(project, pipeline, run_keys_to_unflag, "unflag", user=user)
+        if response.get("status") != "success":
+            return response.get("status", "Could not apply anomaly flags."), dash.no_update
+
+    total = len(run_keys_to_flag) + len(run_keys_to_unflag)
+    return (
+        f"Applied {total} anomaly flag change(s). The QC scope has been refreshed.",
+        json.dumps({"applied": n_clicks, "project": project, "pipeline": pipeline}),
+    )
+
+
 def callbacks(app):
     min_samples_for_anomaly = 3
 
@@ -588,31 +617,11 @@ def callbacks(app):
         State("pipeline", "value"),
     )
     def apply_proposed_flag_changes(n_clicks, proposal, project, pipeline, **kwargs):
-        if not n_clicks:
-            raise PreventUpdate
-        if not proposal:
-            return "No anomaly flag changes to apply.", dash.no_update
-        if project != proposal.get("project") or pipeline != proposal.get("pipeline"):
-            return "Scope changed. Recompute anomaly preview before applying.", dash.no_update
-
         user = kwargs.get("user")
-        if user is None:
-            return "Missing user context.", dash.no_update
-
-        run_keys_to_flag = list(proposal.get("run_keys_to_flag") or [])
-        run_keys_to_unflag = list(proposal.get("run_keys_to_unflag") or [])
-
-        if run_keys_to_flag:
-            response = T.set_rawfile_action(project, pipeline, run_keys_to_flag, "flag", user=user)
-            if response.get("status") != "success":
-                return response.get("status", "Could not apply anomaly flags."), dash.no_update
-        if run_keys_to_unflag:
-            response = T.set_rawfile_action(project, pipeline, run_keys_to_unflag, "unflag", user=user)
-            if response.get("status") != "success":
-                return response.get("status", "Could not apply anomaly flags."), dash.no_update
-
-        total = len(run_keys_to_flag) + len(run_keys_to_unflag)
-        return (
-            f"Applied {total} anomaly flag change(s). The QC scope has been refreshed.",
-            json.dumps({"applied": n_clicks, "project": project, "pipeline": pipeline}),
+        return apply_anomaly_flag_changes(
+            proposal=proposal,
+            project=project,
+            pipeline=pipeline,
+            user=user,
+            n_clicks=n_clicks,
         )

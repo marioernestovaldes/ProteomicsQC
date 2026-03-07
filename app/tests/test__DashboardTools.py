@@ -4,9 +4,13 @@ from uuid import uuid4
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.exceptions import PermissionDenied
 from django.test import SimpleTestCase, TestCase
+import dash
 import pandas as pd
 
-from dashboards.dashboards.dashboard.anomaly import compute_flag_proposals
+from dashboards.dashboards.dashboard.anomaly import (
+    apply_anomaly_flag_changes,
+    compute_flag_proposals,
+)
 from dashboards.dashboards.dashboard.index import (
     _with_sample_labels,
     refresh_qc_table,
@@ -149,6 +153,46 @@ class DashboardToolsTestCase(SimpleTestCase):
         )
         self.assertEqual(qc_data["Flagged"].tolist(), [False, True])
 
+    @patch("dashboards.dashboards.dashboard.anomaly.T.set_rawfile_action")
+    def test__apply_anomaly_flag_changes_applies_flag_and_unflag_actions(self, mock_action):
+        mock_action.side_effect = [{"status": "success"}, {"status": "success"}]
+
+        status, refresh = apply_anomaly_flag_changes(
+            proposal={
+                "project": "proj",
+                "pipeline": "pipe",
+                "run_keys_to_flag": ["rf1"],
+                "run_keys_to_unflag": ["rf2"],
+            },
+            project="proj",
+            pipeline="pipe",
+            user=object(),
+            n_clicks=1,
+        )
+
+        self.assertIn("Applied 2 anomaly flag change", status)
+        self.assertIn('"project": "proj"', refresh)
+        self.assertEqual(mock_action.call_count, 2)
+
+    @patch("dashboards.dashboards.dashboard.anomaly.T.set_rawfile_action")
+    def test__apply_anomaly_flag_changes_stops_on_first_mutation_failure(self, mock_action):
+        mock_action.return_value = {"status": "boom"}
+
+        status, refresh = apply_anomaly_flag_changes(
+            proposal={
+                "project": "proj",
+                "pipeline": "pipe",
+                "run_keys_to_flag": ["rf1"],
+            },
+            project="proj",
+            pipeline="pipe",
+            user=object(),
+            n_clicks=1,
+        )
+
+        self.assertEqual(status, "boom")
+        self.assertIs(refresh, dash.no_update)
+
     def test__update_kpis_uses_structured_scope_rows(self):
         result = update_kpis(
             {
@@ -228,6 +272,39 @@ class DashboardRawFileActionTestCase(TestCase):
         self.assertEqual(response["status"], "success")
         raw_file.refresh_from_db()
         self.assertTrue(raw_file.flagged)
+
+    def test__set_rawfile_action_accept_and_reject_use_display_ref_for_uuid_prefixed_upload(self):
+        raw_file = RawFile.objects.create(
+            pipeline=self.pipeline,
+            orig_file=SimpleUploadedFile("DashboardAccept.RAW", b"..."),
+            created_by=self.user,
+        )
+        RawFile.objects.filter(pk=raw_file.pk).update(
+            orig_file=f"upload/{uuid4().hex}_DashboardAccept.RAW"
+        )
+        raw_file.refresh_from_db()
+
+        response = set_rawfile_action(
+            self.project.slug,
+            self.pipeline.slug,
+            [raw_file.display_ref],
+            "accept",
+            user=self.user,
+        )
+        self.assertEqual(response["status"], "success")
+        raw_file.refresh_from_db()
+        self.assertTrue(raw_file.use_downstream)
+
+        response = set_rawfile_action(
+            self.project.slug,
+            self.pipeline.slug,
+            [raw_file.display_ref],
+            "reject",
+            user=self.user,
+        )
+        self.assertEqual(response["status"], "success")
+        raw_file.refresh_from_db()
+        self.assertFalse(raw_file.use_downstream)
 
     @patch("dashboards.dashboards.dashboard.index.T.get_pipeline_uploaders")
     @patch("dashboards.dashboards.dashboard.index.T.get_qc_data")

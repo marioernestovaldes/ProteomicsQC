@@ -202,6 +202,18 @@ class ApiTestCase(TestCase):
         })
         assert response.status_code == 403, f"Expected 403, got {response.status_code}"
 
+    def test__upload_raw_requires_auth(self):
+        c = Client()
+        response = c.post(
+            reverse("api:upload-raw"),
+            data={
+                "pid": str(self.pipeline.uuid),
+                "orig_file": SimpleUploadedFile("unauth.raw", b"raw-bytes"),
+            },
+        )
+
+        assert response.status_code == 403, f"Expected 403, got {response.status_code}"
+
     def test__qc_data_requires_pipeline_access(self):
         other_user = User.objects.create_user(
             email="qc-other@example.com",

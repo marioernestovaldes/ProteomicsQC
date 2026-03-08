@@ -77,6 +77,22 @@
   font-size: 13px;
 }
 
+.auth-help {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.auth-help ul {
+  margin: 6px 0 0 18px;
+  padding: 0;
+}
+
+.auth-help li + li {
+  margin-top: 4px;
+}
+
 .auth-message {
   margin-top: 16px;
   padding: 12px;

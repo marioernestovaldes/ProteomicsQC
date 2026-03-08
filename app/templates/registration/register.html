@@ -1,15 +1,64 @@
-{% extends "base.html" %} 
+{% extends "base.html" %}
 
 {% block auth %}
-    <form method="post" action="{% url 'user:registration' %}">
-        {% csrf_token %}
+  <section class="auth-panel">
+    <p class="auth-kicker">LAMPrEY account</p>
+    <h1 class="auth-title">Create your account</h1>
+    <p class="auth-copy">
+      Register with your email address to access the application.
+    </p>
+    <p class="auth-copy">
+      After registration, an administrator may still need to assign you to one or more projects.
+    </p>
 
-        {% if form.errors %}
-        <p>Errors in the form</p>
+    <form method="post" action="{% url 'user:registration' %}" class="auth-form">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="auth-message auth-message-danger">
+          {% for error in form.non_field_errors %}
+            <p>{{ error }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <label class="auth-field">
+        <span>{{ form.email.label }}</span>
+        {{ form.email }}
+        {% if form.email.help_text %}
+          <small class="auth-help">{{ form.email.help_text|safe }}</small>
         {% endif %}
+        {% for error in form.email.errors %}
+          <div class="auth-error">{{ error }}</div>
+        {% endfor %}
+      </label>
 
-        {{ form }}
+      <label class="auth-field">
+        <span>{{ form.password1.label }}</span>
+        {{ form.password1 }}
+        {% if form.password1.help_text %}
+          <small class="auth-help">{{ form.password1.help_text|safe }}</small>
+        {% endif %}
+        {% for error in form.password1.errors %}
+          <div class="auth-error">{{ error }}</div>
+        {% endfor %}
+      </label>
 
-        <input type="submit" value="Register">
+      <label class="auth-field">
+        <span>{{ form.password2.label }}</span>
+        {{ form.password2 }}
+        {% if form.password2.help_text %}
+          <small class="auth-help">{{ form.password2.help_text|safe }}</small>
+        {% endif %}
+        {% for error in form.password2.errors %}
+          <div class="auth-error">{{ error }}</div>
+        {% endfor %}
+      </label>
+
+      <div class="auth-actions">
+        <button type="submit" class="btn run-btn run-btn-primary">Register</button>
+        <a href="{% url 'home' %}" class="btn run-btn run-btn-secondary">Back to login</a>
+      </div>
     </form>
+  </section>
 {% endblock %}

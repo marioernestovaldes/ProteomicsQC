@@ -2,9 +2,9 @@
 title: Home
 template: home.html
 ---
-LAMPrEY is a Quality Control server for quantiative proteomics with a special emphasis on simplicity and accessibility in a distributed computational environment.
+LAMPrEY is a quality control server for quantitative proteomics with a special emphasis on simplicity and accessibility in a distributed computational environment.
 
-Scientists can login, submit files, and explore the results remotely. The software features automatic sample processing for multiple projects by simple drag and drop of proteomics RAW files into a web frontend, an interactive dashboard that integrates machine learning powered explainable anomaly detection, and an API for automated/programmatic access and extensibility.  
+Scientists can sign in, submit files, and explore results remotely. The software provides automatic sample processing for multiple projects through a browser-based upload queue, a pipeline run list with queue and cancel controls, an interactive dashboard with anomaly detection, and an authenticated API for automation and downstream integration.
 
 - You can find the software repository on [Github](https://github.com/LewisResearchGroup/ProteomicsQC).
 - And a running version on [ResistanceDB](https://proteomics.resistancedb.org).

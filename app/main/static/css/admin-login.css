@@ -2,6 +2,7 @@ html,
 body.pqc-admin-login-body {
   min-height: 100%;
   margin: 0;
+  overflow: hidden;
   background:
     radial-gradient(circle at 12% 12%, rgba(95, 178, 198, 0.28) 0%, rgba(95, 178, 198, 0) 32%),
     radial-gradient(circle at 86% 10%, rgba(49, 119, 150, 0.18) 0%, rgba(49, 119, 150, 0) 28%),
@@ -18,7 +19,7 @@ body.pqc-admin-login-body #footer {
 }
 
 body.pqc-admin-login-body #container {
-  min-height: 100vh;
+  min-height: 100dvh;
   background: transparent;
 }
 
@@ -31,11 +32,13 @@ body.pqc-admin-login-body #content-main {
 }
 
 .pqc-admin-login-shell {
-  min-height: 100vh;
+  min-height: 100dvh;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 32px 20px;
+  overflow: hidden;
 }
 
 .pqc-admin-login-card {

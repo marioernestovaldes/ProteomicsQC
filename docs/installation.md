@@ -1,6 +1,6 @@
 # Installation
 
-## 1. Prerequisites
+## Prerequisites
 
 The supported setup is Docker-based. Install:
 
@@ -9,31 +9,11 @@ The supported setup is Docker-based. Install:
 - `make`
 - `git-lfs`
 
+## 1. Install Docker
+
 Install Docker Engine and Docker Compose by following the Docker documentation for your platform. For Ubuntu, see [Install Docker Engine on Ubuntu](https://docs.docker.com/engine/install/ubuntu/).
 
-This guide uses `make` targets such as `make init` and `make devel` as shortcuts for Docker Compose commands. If your Docker setup requires elevated privileges, run the `make` targets with a user that can use `sudo`; otherwise they run without it.
-
-??? note "About the `make` command"
-
-    `make` is a host-side convenience tool. It is not part of Docker and it is not provided by the application container.
-
-    On Ubuntu or Debian, install it with:
-
-    ```bash
-    sudo apt update
-    sudo apt install make
-    ```
-
-    If `make` is not available on your system, you can still run the equivalent `docker compose ...` commands manually.
-
 ## 2. Clone the repository
-
-```bash
-git lfs install
-git clone git@github.com:LewisResearchGroup/ProteomicsQC.git LAMPrEY
-cd LAMPrEY
-git lfs pull
-```
 
 This repository stores the bundled MaxQuant executable ZIP with Git LFS. If `git-lfs` is missing, the clone will contain a small pointer file to `MaxQuant_v_2.4.12.0.zip` at `app/seed/defaults/maxquant`.
 
@@ -53,7 +33,14 @@ This repository stores the bundled MaxQuant executable ZIP with Git LFS. If `git
     git lfs pull --include="app/seed/defaults/maxquant/MaxQuant_v_2.4.12.0.zip" --exclude=""
     ```
 
-If you use GitHub's browser "Download ZIP" option instead of `git clone`, the archive only includes the real MaxQuant ZIP when the repository setting to include Git LFS objects in archives is enabled.
+    If you use GitHub's browser "Download ZIP" option instead of `git clone`, the archive only includes the real MaxQuant ZIP when the repository setting to include Git LFS objects in archives is enabled.
+
+```bash
+git lfs install
+git clone git@github.com:LewisResearchGroup/ProteomicsQC.git LAMPrEY
+cd LAMPrEY
+git lfs pull
+```
 
 ## 3. Generate the configuration
 
@@ -66,8 +53,6 @@ This creates `.env` and the local data directories under `./data/`.
 For a normal local installation, you usually do not need to change anything yet. The generated defaults are enough to continue with the installation.
 
 Only review `.env` now if you already know you need a different hostname, storage location, or email setup.
-
-`LAMPrEY` is the product name shown in the UI. Repository and container references may still use the historical `ProteomicsQC` name.
 
 ??? note "Default local configuration in `.env`"
 
@@ -126,20 +111,63 @@ Only review `.env` now if you already know you need a different hostname, storag
 
 ## 4. First-time run
 
+This guide uses `make` targets as shortcuts for Docker Compose commands. If your Docker setup requires elevated privileges, run the `make` targets with a user that can use `sudo`; otherwise they run without it.
+
+??? note "About the `make` command"
+
+    `make` is a host-side convenience tool. It is not part of Docker and it is not provided by the application container.
+
+    On Ubuntu or Debian, install it with:
+
+    ```bash
+    sudo apt update
+    sudo apt install make
+    ```
+
+    If `make` is not available on your system, you can still run the equivalent `docker compose ...` commands manually.
+
 Run:
 
 ```bash
 make init
 ```
 
-`make init` performs the full first-run setup:
+This is the command to use on a clean installation. `make init` performs the full first-run setup:
 
 - uses the published container [image](https://github.com/lewisresearchgroup/ProteomicsQC/pkgs/container/proteomicsqc)
 - creates and applies Django migrations
 - prompts you to create a superuser
 - runs `collectstatic`
 
-This is the command to use on a clean installation.
+Short example of the interactive flow:
+
+<div class="termy">
+
+```console
+$ make init
+
+// Pull and start the published application image
+Pulling app image...
+Starting initialization containers...
+
+// Create Django migrations for project apps and apply them
+Running makemigrations...
+Applying migrations...
+
+// Define the first admin account
+Email address: admin@email.com
+Password: ***
+Password (again): ***
+Superuser created successfully.
+
+// Collect static files and seed demo content
+Running collectstatic...
+Bootstrapping demo data...
+
+Initialization complete.
+```
+    
+</div>
 
 ??? note "What to do when the published image is unavailable"
 
@@ -169,7 +197,7 @@ make serve
 
 This starts the production stack on [http://localhost:8080](http://localhost:8080).
 
-After startup, log in at [http://localhost:8000/admin](http://localhost:8000/admin) for development or [http://localhost:8080/admin](http://localhost:8080/admin) for production.
+![](img/login_page.png)
 
 To stop the containers:
 

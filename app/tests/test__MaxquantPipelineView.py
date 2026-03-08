@@ -81,7 +81,7 @@ class MaxquantPipelineViewTestCase(TestCase):
         })
         response = self.client.get(url)
         self.assertEqual(response.status_code, 302)
-        self.assertIn("/admin/login/", response.url)
+        self.assertIn("/accounts/login/", response.url)
 
     def test_admin_sees_user_column_and_filter(self):
         self.client.force_login(self.admin_user)

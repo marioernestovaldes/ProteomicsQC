@@ -74,6 +74,10 @@ def _custom_get_app_list(self, request, app_label=None):
         else:
             app["models"].sort(key=lambda model: model["name"])
 
+        for model in app["models"]:
+            if model["name"] in {"RawFiles", "Results"}:
+                model["add_url"] = None
+
     return app_list
 
 

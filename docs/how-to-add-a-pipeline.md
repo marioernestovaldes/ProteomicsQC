@@ -1,24 +1,22 @@
-# How to add a pipeline?
+# How to create a new pipeline?
 
-To add a new pipeline the user has to login to the [admin panel](how-to-access-the-admin-panel.md) 
-and at least one project has to exist. Otherwise, contact your admin or read [how to add a project](how-to-add-a-project.md).
-
-Under site administration the click on [MaxQuant Pipelines](https://proteomics.resistancedb.org/admin/maxquant/maxquantpipeline/).
+A pipeline defines the processing steps for raw data files. Each pipeline belongs to a project and can be configured with specific parameters and input files for [Maxquant](https://maxquant.org/) and [RawTools](https://github.com/kevinkovalchik/RawTools). To add a new pipeline, you need to have at least one project set up in the system. If you haven't created a project yet, please refer to [Create a project](how-to-add-a-project.md) before proceeding.
 
 ![](img/admin-panel.png)
 
-Click on the add sign behind _Maxquant pipelines_ to get to the pipeline creation form:
-
+Click on the `+ Add` button beside `Pipelines` to open the pipeline creation form:
 
 ![](img/admin-add-pipeline.png)
 
-Here, fill up the editable fields (name and a description).
+Fill in the editable fields and upload the required configuration:
 
-1. Select the MaxQuant version. If no version is selected the default version will be used (recommended).
-2. Add a `Fasta` file with amino-acid sequences of target proteins. 
-3. Add a `mqpar.xml` (MaxQuant parameter file) generated with _MaxQuant_. The file should be generated with a single `.raw` file and the _MaxQuant_ version should match the [version used in the pipeline](maxquant.md).
-4. Provide command line parameters for [RawTools](https://github.com/kevinkovalchik/RawTools). Read [Rawtools Help](rawtools.md) for more information.
+1. Select the MaxQuant version. If no explicit version is selected, the default bundled version (2.4.12.0) is used.
+2. Add a `FASTA` file with the target protein sequences.
+3. Add an `mqpar.xml` file generated with MaxQuant. If no explicit mqpar.xml is submitted, the default mqpar.xml file for bundled version (2.4.12.0) is used.
+4. Provide command-line parameters for [RawTools](https://github.com/kevinkovalchik/RawTools). Read [RawTools help](https://github.com/kevinkovalchik/RawTools/wiki/Run-RawTools-for-parsing-and-quantification-for-Linux) for the supported arguments.
 
-> Not all _MaxQuant_ versions are compatible with _LAMPrEY_. We recommend using the [default version](maxquant.md) if possible.
+After saving the pipeline:
 
-Finally, click on `SAVE`.
+- project members can upload `.raw` files to it from the pipeline page or via the API
+- each uploaded file creates an independent run, even when the displayed filename matches a previous upload
+- the seeded demo pipeline is read-only and blocks new uploads

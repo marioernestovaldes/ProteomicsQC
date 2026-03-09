@@ -1,5 +1,3 @@
-import logging
-
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -9,13 +7,8 @@ import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 
-try:
-    from . import config as C
-    from . import tools as T
-except Exception as e:
-    logging.warning(e)
-    import config as C
-    import tools as T
+from dashboards.dashboards.dashboard import config as C
+from dashboards.dashboards.dashboard import tools as T
 
 
 X_AXIS_LABELS = {

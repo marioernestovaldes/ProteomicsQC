@@ -8,12 +8,8 @@ from plotly import express as px
 
 from dash_tabulator import DashTabulator
 
-try:
-    from .tools import list_to_dropdown_options
-    from . import tools as T
-except ImportError:
-    from tools import list_to_dropdown_options
-    import tools as T
+from dashboards.dashboards.dashboard.tools import list_to_dropdown_options
+from dashboards.dashboards.dashboard import tools as T
 
 
 tabulator_options = {

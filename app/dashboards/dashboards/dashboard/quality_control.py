@@ -1,4 +1,3 @@
-import logging
 import re
 import pandas as pd
 from dash import dcc, html
@@ -8,13 +7,8 @@ from dash.exceptions import PreventUpdate
 
 import plotly.graph_objects as go
 
-try:
-    from . import tools as T
-    from . import config as C
-except Exception as e:
-    logging.warning(e)
-    import tools as T
-    import config as C
+from dashboards.dashboards.dashboard import config as C
+from dashboards.dashboards.dashboard import tools as T
 
 # Keep the graph responsive without forcing a tall container up front
 GRAPH_STYLE = {"maxWidth": "100%"}

@@ -1,5 +1,4 @@
 import os
-import logging
 import json
 import hashlib
 import pandas as pd
@@ -11,13 +10,8 @@ from dash.exceptions import PreventUpdate
 
 from omics.proteomics import ProteomicsQC
 
-try:
-    from . import tools as T
-    from . import config as C
-except Exception as e:
-    logging.warning(e)
-    import tools as T
-    import config as C
+from dashboards.dashboards.dashboard import config as C
+from dashboards.dashboards.dashboard import tools as T
 
 
 layout = html.Div(

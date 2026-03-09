@@ -22,15 +22,8 @@ from omics.plotly_tools import (
 from omics.proteomics import ProteomicsQC
 
 
-import logging
-
-try:
-    from . tools import list_to_dropdown_options
-    from . import tools as T
-except Exception as e:
-    logging.warning(f'Trying to import .tools this error occurred:\n{e}')
-    from tools import list_to_dropdown_options
-    import tools as T
+from dashboards.dashboards.dashboard.tools import list_to_dropdown_options
+from dashboards.dashboards.dashboard import tools as T
 
 set_template()
 
@@ -75,16 +68,24 @@ if __name__ == "__main__":
         __name__,
         external_stylesheets=["/static/css/dashboard.css"],
     )
-    import quality_control, anomaly, protein_intensity
-    import config as C
-    import tools as T
+    from dashboards.dashboards.dashboard import (
+        anomaly,
+        config as C,
+        protein_intensity,
+        quality_control,
+        tools as T,
+    )
 
     app.config.suppress_callback_exceptions = True
 else:
     from django_plotly_dash import DjangoDash
-    from . import quality_control, anomaly, protein_intensity
-    from . import config as C
-    from . import tools as T
+    from dashboards.dashboards.dashboard import (
+        anomaly,
+        config as C,
+        protein_intensity,
+        quality_control,
+        tools as T,
+    )
 
     app = DjangoDash(
         "dashboard",

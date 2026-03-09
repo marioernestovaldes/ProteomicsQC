@@ -27,14 +27,23 @@ class MqparParser:
 
         repls = {
             "<fastaFilePath>.*</fastaFilePath>": "<fastaFilePath>__FASTA__</fastaFilePath>",
-            "<string>.*.[raw,RAW]</string>": "<string>__RAW__</string>",
+            r"<string>[^<]*\.(?:raw|RAW)</string>": "<string>__RAW__</string>",
         }
 
         for pattern, repl in repls.items():
             new_content = re.sub(pattern, repl, new_content)
 
+        new_content = re.sub(
+            r"(<experiments>\s*<string>).*?(</string>\s*</experiments>)",
+            r"\1__LABEL__\2",
+            new_content,
+            count=1,
+            flags=re.DOTALL,
+        )
+
         n_raws = len(re.findall("__RAW__", new_content))
-        assert n_raws == 1, Exception("Please use mqpar.xml for single RAW file.")
+        if n_raws > 1:
+            raise AssertionError("Please use mqpar.xml for single RAW file.")
         self._content = new_content
         return self
 

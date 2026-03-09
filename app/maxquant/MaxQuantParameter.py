@@ -8,6 +8,8 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.utils.html import mark_safe
 
+from omics.proteomics.maxquant.MqparParser import MqparParser
+
 
 class MaxQuantParameter(models.Model):
     class Meta:
@@ -40,6 +42,7 @@ class MaxQuantParameter(models.Model):
         if P(src_path).is_file():
             os.makedirs(trg_path.parent, exist_ok=True)
             shutil.move(src_path, trg_path)
+            MqparParser(trg_path).as_template().write(trg_path)
         else:
             pass
 

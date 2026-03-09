@@ -80,7 +80,7 @@ class Pipeline(MaxQuantParameter, FastaFile, RawToolsSetup):
 
     def get_absolute_url(self):
         return reverse(
-            "pipeline-detail",
+            "maxquant:detail",
             kwargs={"pipeline": self.slug, "project": self.project.slug},
         )
 

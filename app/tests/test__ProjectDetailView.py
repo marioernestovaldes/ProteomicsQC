@@ -38,7 +38,11 @@ class ProjectDetailViewTestCase(TestCase):
     def test_project_detail_requires_login(self):
         url = reverse("project:detail", kwargs={"slug": self.project.slug})
         response = self.client.get(url)
-        self.assertRedirects(response, f"/accounts/login/?next={url}")
+        self.assertRedirects(
+            response,
+            f"/accounts/login/?next={url}",
+            fetch_redirect_response=False,
+        )
 
     def test_project_detail_access_for_owner(self):
         self.client.force_login(self.user)
